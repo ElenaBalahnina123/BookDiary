@@ -6,17 +6,22 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,37 +64,35 @@ class MainActivity : ComponentActivity() {
                                 navArgument("book_id") { type = NavType.LongType }
                             )
                         ) {
-                            val bookId = it.arguments?.getLong("book_id") ?: 0L
-                            EditElement(
-                                navController = navController,
-                                viewModel = viewModel(
-                                    factory = object : ViewModelProvider.Factory {
-                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                            return EditElementViewModel(bookId) as T
-                                        }
-                                    }
-                                )
-                            )
+                            BookEditor(navController)
                         }
                         composable(
                             route = "books/new"
                         ) {
-                            EditElement(
-                                navController = navController,
-                                viewModel = viewModel(
-                                    factory = object : ViewModelProvider.Factory {
-                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                            return EditElementViewModel(null) as T
-                                        }
-                                    }
-                                )
-                            )
+                            BookEditor(navController)
                         }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun BookEditor(navController: NavController) {
+    val viewModel = hiltViewModel<EditElementViewModel>()
+    EditElement(
+        navController = navController,
+        onSaveClick = viewModel::saveClick,
+        bookTitleFlow = viewModel.bookTitleFlow(),
+        onTitleChange = viewModel::onTitleChange,
+        authorFlow = viewModel.authorFlow(),
+        onAuthorChange = viewModel::onAuthorChange,
+        onClickGallery = viewModel::onClickGallery,
+        onClickCamera = viewModel::onClickCamera,
+        descriptionFlow = viewModel.descriptionFlow(),
+        onDescriptionChange = viewModel::onDescriptionChange
+    )
 }
 
 // books

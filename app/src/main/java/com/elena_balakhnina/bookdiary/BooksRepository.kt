@@ -1,5 +1,9 @@
 package com.elena_balakhnina.bookdiary
 
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -15,6 +19,14 @@ data class BookEntity(
     val genre: String,
     val image: String?,
 )
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class BookRepoModule {
+
+    @Binds
+    abstract fun bindBooksRepo(impl: BooksRepositoryImpl): BooksRepository
+}
 
 interface BooksRepository {
 

@@ -2,6 +2,7 @@ package com.elena_balakhnina.bookdiary
 
 import android.app.DatePickerDialog
 import android.content.Context
+import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -26,30 +27,36 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class EditElementViewModel @Inject constructor(
-    //private val bookId: Long? = null
     savedStateHandle: SavedStateHandle,
     repository: BooksRepository
 ) : ViewModel() {
 
+    private val bookId = savedStateHandle.get<Long>("book_id")
 
     init {
-        savedStateHandle.
+        bookId?.let {
+            Log.d("LENA_KOT","book id: $bookId")
+
+            viewModelScope.launch {
+                repository.getById(it)
+            }
+        }
     }
 
     private val mutableState = MutableStateFlow(EditElementVmState())
@@ -107,7 +114,15 @@ data class EditElementVmState(
 @Composable
 fun EditElement(
     navController: NavController = rememberNavController(),
-    viewModel: EditElementViewModel = EditElementViewModel()
+    onSaveClick: ()->Unit = {},
+    bookTitleFlow: Flow<String> = emptyFlow(),
+    onTitleChange: (String)->Unit = {},
+    authorFlow: Flow<String> = emptyFlow(),
+    onAuthorChange: (String)->Unit = {},
+    onClickGallery: ()->Unit = {},
+    onClickCamera: ()->Unit = {},
+    descriptionFlow: Flow<String> = emptyFlow(),
+    onDescriptionChange: (String)->Unit = {},
 ) {
     BookDiaryTheme {
         Scaffold(
@@ -131,7 +146,7 @@ fun EditElement(
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = viewModel::saveClick) {
+                FloatingActionButton(onClick = onSaveClick) {
                     Icon(imageVector = Icons.Default.Check, contentDescription = null)
                 }
             }) { scaffoldPaddings ->
@@ -147,11 +162,11 @@ fun EditElement(
                     .verticalScroll(scrollState),
             ) {
                 Box {
-                    val title by viewModel.bookTitleFlow().collectAsState(initial = "")
+                    val title by bookTitleFlow.collectAsState(initial = "")
 
                     TextField(
                         value = title,
-                        onValueChange = viewModel::onTitleChange,
+                        onValueChange = onTitleChange,
                         label = {
                             Text(text = "Название книги")
                         },
@@ -162,11 +177,11 @@ fun EditElement(
                     )
                 }
                 Box {
-                    val author by viewModel.authorFlow().collectAsState(initial = "")
+                    val author by authorFlow.collectAsState(initial = "")
 
                     TextField(
                         value = author,
-                        onValueChange = viewModel::onAuthorChange,
+                        onValueChange = onAuthorChange,
                         label = {
                             Text(text = "Автор")
                         },
@@ -194,7 +209,7 @@ fun EditElement(
                         .align(Alignment.CenterHorizontally)
                 ) {
                     Button(
-                        onClick = viewModel::onClickGallery,
+                        onClick = onClickGallery,
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Image(
@@ -206,7 +221,7 @@ fun EditElement(
                         )
                     }
 
-                    Button(onClick = viewModel::onClickCamera) {
+                    Button(onClick = onClickCamera) {
                         Image(
                             painter = painterResource(id = R.drawable.camera),
                             contentDescription = null,
@@ -218,17 +233,16 @@ fun EditElement(
                     }
                 }
 
-
                 DropDownMenu()
                 DropDownMenuGenre()
                 Calendar()
 
                 Box() {
-                    val description by viewModel.descriptionFlow().collectAsState(initial = "")
+                    val description by descriptionFlow.collectAsState(initial = "")
 
                     TextField(
                         value = description,
-                        onValueChange = viewModel::onDescriptionChange,
+                        onValueChange = onDescriptionChange,
                         label = {
                             Text(text = "Описание")
                         },
