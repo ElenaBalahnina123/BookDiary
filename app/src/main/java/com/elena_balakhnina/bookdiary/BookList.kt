@@ -16,17 +16,15 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 
 class BookListViewModel : ViewModel() {
-    fun onAddClick(navController: NavController) {
-        navController.navigate("books/new")
-    }
 
     private val mutableStateFlow = MutableStateFlow(BookListVmState())
 
-    val stateFlow get() = mutableStateFlow.asStateFlow()
+    fun booksFlow(): Flow<List<BookItemData>> {
+        return mutableStateFlow.map { it.books }
+    }
 
     fun onItemClick(bookItemData: BookItemData) {
 
@@ -42,7 +40,8 @@ data class BookListVmState(
 @Composable
 fun BookList(
     navController: NavController = rememberNavController(),
-    viewModel: BookListViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    onAddClick: () -> Unit = {},
+    stateFlow: Flow<List<BookItemData>> = emptyFlow()
 ) {
     BookDiaryTheme {
         Scaffold(
@@ -54,20 +53,20 @@ fun BookList(
                 )
             },
             floatingActionButton = {
-                FloatingActionButton(onClick = {
-                    viewModel.onAddClick(navController)
-                }) {
+                FloatingActionButton(
+                    onClick = onAddClick
+                ) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = null)
                 }
             }
         ) {
 
-            val state = viewModel.stateFlow.collectAsState()
+            val state = stateFlow.collectAsState(emptyList())
 
             LazyColumn(
                 modifier = Modifier.padding(it),
             ) {
-                items(state.value.books) {
+                items(state.value) {
                     ItemList(itemData = it, onClick = {
                         // viewModel::onItemClick
                         navController.navigate("books/1")

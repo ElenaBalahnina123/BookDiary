@@ -7,11 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,8 +35,11 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(navController = navController, startDestination = "books") {
                         composable("books") {
+                            val viewModel = hiltViewModel<BookListViewModel>()
                             BookList(
                                 navController = navController,
+                                onAddClick = { navController.navigate("books/new") },
+                                stateFlow = viewModel.booksFlow()
                             )
                         }
                         composable(
@@ -47,15 +49,16 @@ class MainActivity : ComponentActivity() {
                             )
                         ) {
                             val bookId = it.arguments?.getLong("book_id") ?: 0L
+
+                            val viewModel = hiltViewModel<ViewElementVM>()
+
+                            val elementState by viewModel.stateFlow.collectAsState()
+
                             ViewElement(
                                 navController = navController,
-                                viewModel = viewModel<ViewElementVM>(
-                                    factory = object : ViewModelProvider.Factory {
-                                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                                            return ViewElementVM(bookId) as T
-                                        }
-                                    }
-                                )
+                                onEditClick =  { navController.navigate("books/$bookId/edit") },
+                                onDelete = viewModel::onDelete,
+                                state = elementState,
                             )
                         }
                         composable(

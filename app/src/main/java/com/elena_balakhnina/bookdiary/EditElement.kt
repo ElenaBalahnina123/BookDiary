@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.util.Log
 import android.widget.DatePicker
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -27,15 +28,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
@@ -44,7 +44,9 @@ import javax.inject.Inject
 @HiltViewModel
 class EditElementViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    repository: BooksRepository
+    private val repository: BooksRepository,
+    @ApplicationContext
+    private val context: Context,
 ) : ViewModel() {
 
     private val bookId = savedStateHandle.get<Long>("book_id")
@@ -69,7 +71,14 @@ class EditElementViewModel @Inject constructor(
     fun descriptionFlow() = mutableState.map { it.description }.distinctUntilChanged()
 
     fun saveClick() {
+        viewModelScope.launch {
+            val state = stateFlow.value
+            if(state.bookTitle.isEmpty()) {
+                Toast.makeText(context,"Book title empty",Toast.LENGTH_SHORT).show()
+                return@launch
+            }
 
+        }
     }
 
     fun onClickGallery() {
@@ -233,7 +242,7 @@ fun EditElement(
                     }
                 }
 
-                DropDownMenu()
+                OldDropDownMenu()
                 DropDownMenuGenre()
                 Calendar()
 
@@ -258,9 +267,8 @@ fun EditElement(
     }
 }
 
-
 @Composable
-fun DropDownMenu() {
+fun OldDropDownMenu() {
     var expanded by remember { mutableStateOf(false) }
     val suggestions = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
     var selectedText by remember { mutableStateOf("") }
@@ -273,8 +281,11 @@ fun DropDownMenu() {
         Icons.Filled.KeyboardArrowDown
 
 
-    Column(Modifier.padding(0.dp)) {
-        OutlinedTextField(
+    Row(Modifier.padding(0.dp)) {
+        Text(
+            text = selectedText,
+        )
+        /*OutlinedTextField(
             value = selectedText,
             onValueChange = { selectedText = it },
             modifier = Modifier
@@ -288,7 +299,7 @@ fun DropDownMenu() {
                 Icon(icon, "contentDescription",
                     Modifier.clickable { expanded = !expanded })
             }
-        )
+        )*/
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
