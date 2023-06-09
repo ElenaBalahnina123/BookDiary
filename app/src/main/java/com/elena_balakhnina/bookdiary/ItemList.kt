@@ -1,14 +1,16 @@
 package com.elena_balakhnina.bookdiary
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Card
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -17,94 +19,158 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
+import com.elena_balakhnina.bookdiary.compose.component.Circle
 
 
-data class BookItemData(
-    val bookTitle: String,
-    val author: String,
-    val description: String,
-    val date: Long,
-    val rating: Int,
-    val genre: String
-)
-
-class BookItemDataPreviewProvider : PreviewParameterProvider<BookItemData> {
+class BookItemDataPreviewProvider : PreviewParameterProvider<BookListItemData> {
     override val count: Int
         get() = 1
 
-    override val values: Sequence<BookItemData>
+    override val values: Sequence<BookListItemData>
         get() = sequence {
             yield(
-                BookItemData(
-                    bookTitle = "Королевство шипов и роз",
+                BookListItemData(
+                    bookTitle = "Королевство шипов и роз gggggggggfgf gfgfgfgfgf",
                     author = "Сара Дж. Маас",
                     description = "Могла ли знать девятнадцатилетняя Фейра, что огромный волк, убитый девушкой на охоте, — на самом деле преображенный фэйри. Расплата не заставила себя ждать. Она должна или заплатить жизнью, или переселиться за стену — волшебную невидимую преграду, отделяющую владения смертных от Притиании, королевства фэйри. Фейра выбирает второе. Тамлин, владелец замка, куда девушка попадает, не простой фэйри, он — верховный правитель Двора весны, одного из могущественных Дворов, на которые поделено королевство. Однажды Фейра узнает тайну: на Двор весны и на Тамлина, ее покровителя, злые силы наложили заклятье, снять которое способна только смертная девушка",
-                    date = System.currentTimeMillis(),
+                    date = "11.12.2007",
                     rating = 9,
-                    genre = "Романтика"
+                    genre = "Романтика",
+                    image = null,
+                    rate = true
                 )
             )
         }
 }
 
+data class BookListItemData(
+    val bookTitle: String,
+    val author: String,
+    val description: String,
+    val date: String?,
+    val rating: Int?,
+    val genre: String,
+    val image: ImageBitmap?,
+    val rate: Boolean
+)
+
 @Preview
 @Composable
-fun ItemList(
+fun BookListItem(
     @PreviewParameter(BookItemDataPreviewProvider::class)
-    itemData: BookItemData,
-    onClick: (BookItemData)->Unit = {},
+    itemData: BookListItemData,
+    onClick: () -> Unit = {},
+    onClickAddFavorite: () -> Unit = {},
+    showRatingAndData: Boolean = false
 ) {
-    Card(
-        modifier = Modifier.clickable(onClick = { onClick(itemData) })
+
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .clickable(onClick = onClick)
     ) {
-        Row(
-            Modifier
-                .padding(8.dp)
-                .fillMaxWidth()
-        ) {
+        val (bookTitle, author, description, date, rating, image, favoriteButton, ratingImage) = createRefs()
+
+        if (itemData.image != null) {
             Image(
-                painter = painterResource(id = R.drawable.kingdom),
                 contentDescription = null,
                 modifier = Modifier
-                    .width(86.dp)
-                    .aspectRatio(0.65f),
-                contentScale = ContentScale.Crop
+                    .constrainAs(image) {
+                        start.linkTo(parent.start, 8.dp)
+                        top.linkTo(parent.top, 8.dp)
+                    }
+                    .width(96.dp)
+                    .aspectRatio(0.75f),
+                contentScale = ContentScale.Crop,
+                bitmap = itemData.image
             )
-            Column(Modifier.padding(start = 8.dp)) {
-                Text(
-                    text = itemData.bookTitle,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Text(
-                    text = itemData.author,
-                    color = Color.Blue,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Text(text = itemData.description, fontSize = 12.sp, maxLines = 4, overflow = TextOverflow.Ellipsis)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = String.format("%1\$td.%1\$tm.%1\$ty", itemData.date),
-                    )
-                    Spacer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.star),
-                        contentDescription = null
-                    )
-                    Text(
-                        text = itemData.rating.toString(),
-                    )
-
+        } else {
+            Image(
+                painter = painterResource(id = R.drawable.my_books), contentDescription = null,
+                modifier = Modifier
+                    .constrainAs(image) {
+                        start.linkTo(parent.start, 9.dp)
+                        top.linkTo(parent.top, 8.dp)
+                    }
+                    .width(96.dp)
+                    .aspectRatio(0.75f)
+            )
+        }
+        Text(
+            text = itemData.bookTitle,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.constrainAs(bookTitle) {
+                start.linkTo(image.end, 16.dp)
+                end.linkTo(parent.end, 16.dp)
+                top.linkTo(parent.top, 8.dp)
+                width = Dimension.fillToConstraints
+            }
+        )
+        Text(
+            text = itemData.author,
+            color = Color.Blue,
+            modifier = Modifier.constrainAs(author) {
+                start.linkTo(bookTitle.start)
+                top.linkTo(bookTitle.bottom, 4.dp)
+            }
+        )
+        if (showRatingAndData) {
+            IconButton(
+                onClick = onClickAddFavorite,
+                modifier = Modifier.constrainAs(favoriteButton) {
+                    start.linkTo(parent.start)
+                    top.linkTo(parent.top)
                 }
+            ) {
+                Circle()
             }
         }
+        Text(
+            text = itemData.description,
+            fontSize = 12.sp,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.constrainAs(description) {
+                start.linkTo(image.end, 16.dp)
+                end.linkTo(parent.end, 16.dp)
+                top.linkTo(author.bottom, 8.dp)
+                width = Dimension.fillToConstraints
+            }
+        )
+        if (showRatingAndData) {
+            if (itemData.date != null) {
+                Text(
+                    text = String.format("%1\$td.%1\$tm.%1\$ty", itemData.date),
+                    modifier = Modifier.constrainAs(date) {
+                        start.linkTo(image.end, 16.dp)
+                        top.linkTo(description.bottom, 8.dp)
+                    }
+                )
+            }
+            if (itemData.rating != null) {
+                Image(
+                    painter = painterResource(id = R.drawable.star),
+                    contentDescription = null,
+                    modifier = Modifier.constrainAs(ratingImage) {
+                        top.linkTo(description.bottom, 8.dp)
+                        end.linkTo(rating.start, 4.dp)
+                    }
+                )
+                Text(
+                    text = itemData.rating.toString(),
+                    modifier = Modifier.constrainAs(rating) {
+                        top.linkTo(ratingImage.top)
+                        bottom.linkTo(ratingImage.bottom)
+                        end.linkTo(parent.end, 16.dp)
+                    }
+                )
+            }
+        }
+
     }
 }
 

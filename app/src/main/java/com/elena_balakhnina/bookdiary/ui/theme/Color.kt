@@ -9,5 +9,6 @@ val Teal200 = Color(0xFF03DAC5)
 
 
 val Turquoise = Color(0xFF03A9F4)
-val TurquoiseDark = Color(0xFF3F51B5)
+val TurquoiseDark = Color(0xFF3F82B5)
 val Yellow = Color(0xFFFFD600)
+val TurquoiseLight = Color(0x2A03A9F4)
