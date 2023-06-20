@@ -8,43 +8,59 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
 import javax.inject.Singleton
 
-
-private const val DATA_BASE_NAME = "books_diary"
-private const val TABLE_NAME = "books_table"
-private const val ID_DB = "idDB"
-private const val BOOK_TITLE_DB = "bookTitleDB"
-private const val AUTHOR_DB = "authorDB"
-private const val DESCRIPTION_DB = "descriptionDB"
-private const val DATE_DB = "dateDB"
-private const val RATING_DB = "ratingDB"
-private const val GENRE_DB = "genreDB"
-private const val IMAGE_DB = "imageDB"
-
 @Entity(
-    tableName = TABLE_NAME
+    tableName = "books"
 )
 data class BookDbEntity(
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = ID_DB) val id: Long,
-    @ColumnInfo(name = BOOK_TITLE_DB) val bookTitleDB: String,
-    @ColumnInfo(name = AUTHOR_DB) val authorDB: String,
-    @ColumnInfo(name = DESCRIPTION_DB) val descriptionDB: String?,
-    @ColumnInfo(name = DATE_DB) val dateDB: String,
-    @ColumnInfo(name = RATING_DB) val ratingDB: String,
-    @ColumnInfo(name = GENRE_DB) val genreDB: String,
-    @ColumnInfo(name = IMAGE_DB) val imageDB: String?,
+    @ColumnInfo(name = "id") val id: Long?,
+    @ColumnInfo(name = "bookTitle") val bookTitle: String,
+    @ColumnInfo(name = "author") val author: String,
+    @ColumnInfo(name = "description") val description: String?,
+    @ColumnInfo(name = "date") val date: Long,
+    @ColumnInfo(name = "rating") val rating: Int,
+    @ColumnInfo(name = "genre") val genreId: Long,
+    @ColumnInfo(name = "image") val image: String?,
+    @ColumnInfo(name = "showRateAndDate") val showRateAndDate : Boolean,
+    @ColumnInfo(name = "isFavorite") val isFavorite : Boolean
+)
+
+@Entity(tableName = "genres")
+data class GenreDBEntity(
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id") val id: Long,
+    @ColumnInfo(name = "genre") val genre: String,
 )
 
 @Dao
+interface GenreDao {
+    @Query("SELECT COUNT(id) FROM genres")
+    suspend fun countGenres(): Long
+
+    @Query("SELECT * FROM genres")
+    suspend fun getAllGenres(): List<GenreDBEntity>
+
+    @Insert
+    suspend fun insertGenres(list: List<GenreDBEntity>)
+
+    @Query("SELECT * FROM genres WHERE id = :id LIMIT 1")
+    suspend fun getByIdGenre(id: Long): GenreDBEntity?
+}
+
+
+
+@Dao
 interface BooksDao {
-    @Query("SELECT * FROM $TABLE_NAME")
+    @Query("SELECT * FROM books")
     fun getAllBooksFlow(): Flow<List<BookDbEntity>>
 
-    @Query("SELECT * FROM $TABLE_NAME WHERE $ID_DB = :bookId LIMIT 1")
+    @Query("SELECT * FROM books WHERE id = :bookId LIMIT 1")
     suspend fun getById(bookId: Long): BookDbEntity?
+
+    @Query("SELECT * FROM books WHERE id = :bookId LIMIT 1")
+    fun subscribeById(bookId: Long): Flow<BookDbEntity?>
 
     @Insert
     suspend fun insertBook(book: BookDbEntity)
@@ -52,27 +68,52 @@ interface BooksDao {
     @Update
     suspend fun updateBook(book: BookDbEntity)
 
-    @Query("DELETE FROM $TABLE_NAME WHERE $ID_DB = :bookId")
+    @Query("DELETE FROM books WHERE id = :bookId")
     suspend fun delete(bookId: Long)
 
-    @Query("SELECT * FROM $TABLE_NAME")
+    @Query("SELECT * FROM books")
     suspend fun getAllBooks(): List<BookDbEntity>
+
+    @Query("SELECT count(id) FROM books")
+    suspend fun countAll(): Long
+
+    @Query("SELECT * FROM books WHERE rating <= 0")
+    fun getPlannedBooks(): Flow<List<BookDbEntity>>
+
+    @Query("SELECT * FROM books WHERE rating > 0")
+    fun getRatedBooks(): Flow<List<BookDbEntity>>
+
+    @Query("SELECT * FROM books WHERE isFavorite")
+    fun getFavoriteBooks(): Flow<List<BookDbEntity>>
+
 }
 
-@Database(entities = [BookDbEntity::class], version = 1)
+@Database(entities = [BookDbEntity::class, GenreDBEntity::class], version = 8)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bookDao(): BooksDao
+
+    abstract fun genreDao(): GenreDao
 }
 
 @InstallIn(SingletonComponent::class)
 @Module
 class DatabaseModule {
+
     @Provides
     @Singleton
-    fun provideBooksDao(@ApplicationContext appContext: Context): BooksDao {
-        return Room.databaseBuilder(appContext, AppDatabase::class.java, DATA_BASE_NAME)
+    fun provideRoomDb(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(context, AppDatabase::class.java, "books_diary")
             .fallbackToDestructiveMigration()
             .build()
-            .bookDao()
+    }
+
+    @Provides
+    fun provideBooksDao(db: AppDatabase): BooksDao {
+        return db.bookDao()
+    }
+
+    @Provides
+    fun provideGenreDao(db: AppDatabase): GenreDao {
+        return db.genreDao()
     }
 }
