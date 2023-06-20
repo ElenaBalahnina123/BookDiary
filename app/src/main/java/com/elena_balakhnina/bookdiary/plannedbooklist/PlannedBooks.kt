@@ -2,7 +2,6 @@ package com.elena_balakhnina.bookdiary.plannedbooklist
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
@@ -16,9 +15,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
-import com.elena_balakhnina.bookdiary.BookListItem
-import com.elena_balakhnina.bookdiary.BookItemData
-import com.elena_balakhnina.bookdiary.BookListItemData
+import com.elena_balakhnina.bookdiary.compose.component.BookListItem
+import com.elena_balakhnina.bookdiary.compose.component.BookListItemData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 

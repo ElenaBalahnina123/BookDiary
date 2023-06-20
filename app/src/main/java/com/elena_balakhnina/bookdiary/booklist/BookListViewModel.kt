@@ -4,12 +4,12 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.elena_balakhnina.bookdiary.edit.ARG_RATE_MODE
+import androidx.navigation.NavHostController
 import com.elena_balakhnina.bookdiary.BookItemData
-import com.elena_balakhnina.bookdiary.BookListItemData
-
 import com.elena_balakhnina.bookdiary.BooksRepository
 import com.elena_balakhnina.bookdiary.ImageCache
+import com.elena_balakhnina.bookdiary.compose.component.BookListItemData
+import com.elena_balakhnina.bookdiary.edit.ARG_RATE_MODE
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,42 +30,58 @@ class BookListViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            Log.d("OLOLO", rateMode.toString())
-                booksRepository.ratedBooksFlow().collect { bookEntities ->
-                    mutableStateFlow.value = mutableStateFlow.value.copy(
-                        books = bookEntities.map {
-                            BookItemData(
-                                bookTitle = it.bookTitle,
-                                author = it.author,
-                                description = it.description.orEmpty(),
-                                date = it.date,
-                                rating = it.rating,
-                                genre = it.genre.genre,
-                                image = cache.getBitmapFromCache(it.image),
-                                bookId = requireNotNull(it.id),
-                                rate = rateMode
-                            )
-                        }
-                    )
-                }
-        }
-    }
-        fun booksFlow(): Flow<List<BookListItemData>> {
-            return mutableStateFlow.map {
-                it.books.map {
-                    BookListItemData(
-                        bookTitle = it.bookTitle,
-                        author = it.author,
-                        description = it.description,
-                        date = it.date.toString(),
-                        rating = it.rating,
-                        genre = it.genre,
-                        image = it.image,
-                        rate = rateMode
-                    )
-                }
+            booksRepository.ratedBooksFlow().collect { bookEntities ->
+                Log.d("OLOLO","got rated book list, count: $bookEntities")
+                mutableStateFlow.value = mutableStateFlow.value.copy(
+                    books = bookEntities.map {
+                        BookItemData(
+                            bookTitle = it.bookTitle,
+                            author = it.author,
+                            description = it.description.orEmpty(),
+                            date = it.date,
+                            rating = it.rating,
+                            genre = it.genre.genre,
+                            image = cache.getBitmapFromCache(it.image),
+                            bookId = requireNotNull(it.id),
+                            rate = rateMode,
+                            isFavorite = it.isFavorite
+                        )
+                    }
+                )
             }
         }
+    }
+
+    fun booksFlow(): Flow<List<BookListItemData>> {
+        return mutableStateFlow.map {
+            it.books.map {
+                BookListItemData(
+                    bookTitle = it.bookTitle,
+                    author = it.author,
+                    description = it.description,
+                    date = String.format("%1\$td.%1\$tm.%1\$ty", it.date),
+                    rating = it.rating,
+                    genre = it.genre,
+                    image = it.image,
+                    showRate = rateMode,
+                    isFavorite = it.isFavorite
+                )
+            }
+        }
+    }
+
+    fun onBookClick(it: Int, navController: NavHostController) {
+        val book = mutableStateFlow.value.books[it]
+        navController.navigate("books/${book.bookId}")
+    }
+
+    fun onToggleFavorite(it: Int) {
+        Log.d("OLOLO", "onToggleFavorite $it")
+        val book = mutableStateFlow.value.books[it]
+        viewModelScope.launch {
+            booksRepository.setFavorite(book.bookId, !book.isFavorite)
+        }
+    }
 
 }
 

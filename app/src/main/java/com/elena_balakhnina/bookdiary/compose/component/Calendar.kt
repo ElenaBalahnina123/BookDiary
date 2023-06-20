@@ -24,6 +24,47 @@ import java.util.GregorianCalendar
 
 @Composable
 fun Calendar(
+    date: Long,
+    onDateChanged: (Long) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    )
+    {
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            val context = LocalContext.current
+            TextButton(
+                onClick = {
+                    val calendar = GregorianCalendar.getInstance()
+                    calendar.timeInMillis = date
+                    DatePickerDialog(
+                        context,
+                        { _, year, month, dayOfMonth ->
+                            calendar.set(year, month, dayOfMonth)
+                            onDateChanged.invoke(calendar.timeInMillis)
+                        },
+                        calendar.get(java.util.Calendar.YEAR),
+                        calendar.get(java.util.Calendar.MONTH),
+                        calendar.get(java.util.Calendar.DAY_OF_MONTH)
+                    ).show()
+                }) {
+                Text(
+                    text = String.format("%1\$td.%1\$tm.%1\$ty", date),
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontFamily = FontFamily.Serif
+                )
+            }
+            Icon(imageVector = Icons.Default.DateRange, contentDescription = "calendar")
+        }
+    }
+}
+
+@Composable
+fun Calendar(
     dateFlow: Flow<Long>,
     onDateChanged: (Long) -> Unit
 ) {

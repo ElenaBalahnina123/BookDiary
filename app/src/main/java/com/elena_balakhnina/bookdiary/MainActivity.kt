@@ -5,19 +5,25 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.*
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.elena_balakhnina.bookdiary.booklist.BookList
 import com.elena_balakhnina.bookdiary.booklist.BookListViewModel
 import com.elena_balakhnina.bookdiary.compose.component.bottommenu.BottomMenuCompose
 import com.elena_balakhnina.bookdiary.compose.component.bottommenu.BottomNavItem
-import com.elena_balakhnina.bookdiary.edit.ARG_RATE_MODE
+import com.elena_balakhnina.bookdiary.favoritebooklist.FavoriteBookListViewModel
+import com.elena_balakhnina.bookdiary.favoritebooklist.FavoriteList
 import com.elena_balakhnina.bookdiary.plannedbooklist.BookListViewModelPlanned
 import com.elena_balakhnina.bookdiary.plannedbooklist.PlannedBooks
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
@@ -67,95 +73,65 @@ private fun navigationContent() {
             startDestination = BottomNavItem.Books.screen_route,
         ) {
             composable("books") {
-                it.arguments?.putBoolean(ARG_RATE_MODE, true)
                 val viewModel = hiltViewModel<BookListViewModel>()
                 BookList(
-                    onAddClick = { navController.navigate("books/new") },
+                    onAddClick = { navController.navigate("editor?allowRate=true") },
                     stateFlow = viewModel.booksFlow(),
-                    onBookClick = { navController.navigate("books/$it") }
+                    onBookClick = { bookIndexInList -> viewModel.onBookClick(bookIndexInList, navController) },
+                    onToggleFavorite = { viewModel.onToggleFavorite(it) }
                 )
             }
-            composable(BottomNavItem.Favorite.screen_route) {
-                FavoriteBooks(navController)
+            composable("favorite") {
+                val viewModel = hiltViewModel<FavoriteBookListViewModel>()
+                FavoriteList(
+                    stateFlow = viewModel.booksFlow(),
+                    onBookClick = { bookIndexInList -> viewModel.onBookClick(bookIndexInList, navController) },
+                    onToggleFavorite = { viewModel.onToggleFavorite(it) }
+                )
             }
             composable("planned") {
                 val viewModel = hiltViewModel<BookListViewModelPlanned>()
                 PlannedBooks(
-                    onAddPlannedBook = { navController.navigate("planned/new") },
-                    onBookClick =  { navController.navigate("planned/$it") },
+                    onAddPlannedBook = { navController.navigate("editor") },
+                    onBookClick = { bookIndexInList -> viewModel.onBookClick(bookIndexInList, navController) },
                     stateFlow = viewModel.booksFlow(),
                 )
             }
             composable(
-                "books/{book_id}",
+                "books/{book_id}?planned={planned_mode}",
                 arguments = listOf(
-                    navArgument("book_id") { type = NavType.LongType }
+                    navArgument("book_id") { type = NavType.LongType },
+                    navArgument("planned_mode") {
+                        type = NavType.BoolType
+                        defaultValue = false
+                    }
                 )
             ) {
                 val bookId = it.arguments?.getLong("book_id") ?: 0L
-                it.arguments?.putBoolean(ARG_RATE_MODE, true)
                 val viewModel = hiltViewModel<ViewElementVM>()
-
                 val state by viewModel.uiFlow().collectAsState(ViewElementScreenData())
                 ViewElementScreen(
                     navController = navController,
-                    onEditClick = { navController.navigate("books/$bookId/edit") },
+                    onEditClick = { navController.navigate("editor?bookId=${bookId}&allowRate=true") },
                     onDelete = { viewModel.onDelete(navController) },
                     viewElementScreenData = state
                 )
             }
             composable(
-                "planned/{book_id}",
-
+                "editor?bookId={book_id}&allowRate={allow_rate}",
                 arguments = listOf(
-                    navArgument("book_id") { type = NavType.LongType },
+                    navArgument("book_id"){
+                        type = NavType.LongType
+                        defaultValue = -1
+                    },
+                    navArgument("allow_rate") {
+                        type = NavType.BoolType
+                        defaultValue = false
+                    }
                 )
             ) {
-                val bookId = it.arguments?.getLong("book_id") ?: 0L
-                val viewModel = hiltViewModel<ViewElementVM>()
-
-                val state by viewModel.uiFlow().collectAsState(ViewElementScreenData())
-
-
-                ViewElementScreen(
-                    navController = navController,
-                    onEditClick = { navController.navigate("planned/$bookId/edit") },
-                    onDelete = { viewModel.onDelete(navController) },
-                    viewElementScreenData = state
-                )
-            }
-            composable(
-                "books/{book_id}/edit",
-                arguments = listOf(
-                    navArgument("book_id") { type = NavType.LongType },
-                )
-            ) {
-                it.arguments?.putBoolean(ARG_RATE_MODE, true)
-                BookEditor(navController)
-            }
-            composable(
-                "planned/{book_id}/edit",
-                arguments = listOf(
-                    navArgument("book_id") { type = NavType.LongType }
-                )
-            ) {
-                BookEditor(navController)
-            }
-            composable(
-                route = "books/new"
-            ) {
-                it.arguments?.putBoolean(ARG_RATE_MODE, true)
-                BookEditor(navController)
-            }
-            composable(
-                route = "planned/new"
-            ) {
-                BookEditor(navController)
+                BookEditor(navController = navController)
             }
         }
     }
 }
-
-// books
-// books/1
-// books/1/edit

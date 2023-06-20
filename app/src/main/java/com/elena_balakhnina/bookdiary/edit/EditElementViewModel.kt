@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.launch
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,14 +23,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 const val ARG_BOOK_ID = "book_id"
-const val ARG_RATE_MODE = "allowRate"
+const val ARG_RATE_MODE = "allow_rate"
+const val ARG_FAVORITE = "isFavorite"
 
 @HiltViewModel
 class EditElementViewModel @Inject constructor(
@@ -41,63 +45,63 @@ class EditElementViewModel @Inject constructor(
     private val imageCache: ImageCache
 ) : ViewModel() {
 
-    private val bookId = savedStateHandle.get<Long>(ARG_BOOK_ID)
-    val rateMode = savedStateHandle.get<Boolean>(ARG_RATE_MODE) ?: false
+    companion object {
+        private const val TAG = "EditElementVM"
+    }
 
-    private val mutableState = MutableStateFlow(EditElementVmState())
+    private val bookId = savedStateHandle.get<Long>(ARG_BOOK_ID)
+    private val rateMode = savedStateHandle.get<Boolean>(ARG_RATE_MODE) ?: false
+
+    private val mutableState = MutableStateFlow(
+        EditElementVmState(
+            allowRate = rateMode.also {
+                Log.d(TAG, "rate mode: $it")
+            }
+        )
+    )
 
     init {
+        Log.d(TAG, "rateMode: $rateMode")
+        Log.d(TAG, "bookId: $bookId")
+
         viewModelScope.launch {
             val genres = genresRepository.getAllGenres()
 
-            Log.d("EDITOR","genres loaded: ${genres.size}")
+            Log.d(TAG, "genres loaded: ${genres.size}")
 
-            mutableState.value = mutableState.value.copy(
-                genres = genres
-            )
-
-            if(bookId != null) {
-                booksRepository.getById(bookId)?.let {
-                    mutableState.value = EditElementVmState(
-                        bookTitle = it.bookTitle,
-                        author = it.author,
-                        description = it.description.orEmpty(),
-                        date = it.date,
-                        rating = it.rating,
-                        image = it.image,
-                        allowRate = rateMode,
-                        selectedGenreIndex = genres.indexOf(it.genre),
-                    )
-                }
+            mutableState.value = bookId?.let { booksRepository.getById(it) }?.let {
+                mutableState.value.copy(
+                    bookTitle = TextFieldValue(it.bookTitle),
+                    author = TextFieldValue(it.author),
+                    description = TextFieldValue(it.description.orEmpty()),
+                    date = it.date,
+                    rating = it.rating,
+                    image = it.image,
+                    allowRate = rateMode,
+                    selectedGenreIndex = genres.indexOf(it.genre),
+                    genres = genres
+                )
+            } ?: kotlin.run {
+                mutableState.value.copy(
+                    genres = genres
+                )
             }
         }
     }
 
-    fun bookTitleFlow() = mutableState.map { it.bookTitle }.distinctUntilChanged()
-
-    fun authorFlow() = mutableState.map { it.author }.distinctUntilChanged()
-
-    fun descriptionFlow() = mutableState.map { it.description }.distinctUntilChanged()
-
-    fun genreFlow() = mutableState.map { it.selectedGenreIndex }
-
-    fun ratingFlow() = mutableState.map { it.rating }
-
-    fun dateFlow() = mutableState.map { it.date }
-
     fun saveClick(navController: NavController) {
         viewModelScope.launch {
             val state = mutableState.value
-            if (state.bookTitle.isEmpty()) {
+            if (state.bookTitle.text.isEmpty()) {
                 Toast.makeText(context, "Введите название книги", Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            if (state.author.isEmpty()) {
+            if (state.author.text.isEmpty()) {
                 Toast.makeText(context, "Введите автора", Toast.LENGTH_SHORT).show()
                 return@launch
             }
 
-            if(rateMode) {
+            if (rateMode) {
                 if (state.rating == -1) {
                     Toast.makeText(context, "Введите рейтинг", Toast.LENGTH_SHORT).show()
                     return@launch
@@ -111,51 +115,86 @@ class EditElementViewModel @Inject constructor(
                 Toast.makeText(context, "Введите жанр", Toast.LENGTH_SHORT).show()
                 return@launch
             }
-                booksRepository.save(
-                    BookEntity(
-                        id = bookId,
-                        bookTitle = state.bookTitle,
-                        author = state.author,
-                        description = state.description,
-                        date = state.date,
-                        rating = state.rating,
-                        image = state.image,
-                        genre = genre
-                    )
+            booksRepository.save(
+                BookEntity(
+                    id = bookId,
+                    bookTitle = state.bookTitle.text,
+                    author = state.author.text,
+                    description = state.description.text,
+                    date = state.date,
+                    rating = state.rating,
+                    image = state.image,
+                    genre = genre,
+                    showRateAndDate = state.allowRate,
+                    isFavorite = state.isFavorite
                 )
-                navController.popBackStack()
+            )
+            navController.popBackStack()
         }
     }
 
-    fun imageFlow() = mutableState.map { imageCache.getBitmapFromCache(it.image) }
+    val uiFlow = mutableState.map { viewModelState ->
+        EditElementData(
+            bookTitle = viewModelState.bookTitle,
+            selectedGenreIndex = viewModelState.selectedGenreIndex,
+            allowRate = viewModelState.allowRate,
+            date = viewModelState.date,
+            rating = viewModelState.rating,
+            image = imageCache.getBitmapFromCache(viewModelState.image),
+            description = viewModelState.description,
+            author = viewModelState.author,
+            genres = viewModelState.genres.map { genreDBEntity -> genreDBEntity.genre },
+            isFavorite = viewModelState.isFavorite
+        )
+    }.distinctUntilChanged().onEach {
+        Log.d(TAG, "update uiFlow to $it")
+    }.stateIn(
+        viewModelScope, SharingStarted.Eagerly, EditElementData(
+            bookTitle = TextFieldValue(),
+            author = TextFieldValue(),
+            image = null,
+            isFavorite = false,
+            allowRate = false,
+            genres = emptyList(),
+            description = TextFieldValue(),
+            rating = 0,
+            date = 0L,
+            selectedGenreIndex = -1
+        )
+    )
 
-    fun onTitleChange(newTitle: String) {
+    fun onTitleChange(newTitle: TextFieldValue) {
+        Log.d(TAG, "onTitleChange: ${newTitle.text}")
         mutableState.value = mutableState.value.copy(
             bookTitle = newTitle
         )
     }
 
-    fun onAuthorChange(newAuthor: String) {
+    fun onAuthorChange(newAuthor: TextFieldValue) {
+        Log.d(TAG, "onAuthorChange: ${newAuthor.text}")
         mutableState.value = mutableState.value.copy(
             author = newAuthor
         )
     }
 
-    fun onDescriptionChange(newDescription: String) {
+    fun onDescriptionChange(newDescription: TextFieldValue) {
+        Log.d(TAG, "onDescriptionChange: ${newDescription.text}")
         mutableState.value = mutableState.value.copy(
             description = newDescription
         )
     }
 
     fun onGenreSelected(genreIndex: Int) {
+        Log.d(TAG, "onGenreSelected: $genreIndex")
         mutableState.value = mutableState.value.copy(
             selectedGenreIndex = genreIndex
         )
     }
 
-    fun onRatingSelected(rationg: Int) {
+    fun onRatingSelected(rating: Int) {
+        Log.d(TAG, "onRatingSelected: $rating")
         mutableState.value = mutableState.value.copy(
-            rating = rationg
+            rating = rating
         )
     }
 
@@ -166,6 +205,7 @@ class EditElementViewModel @Inject constructor(
     }
 
     fun onPickImageFromGallery(pickFromGalleryLauncher: ActivityResultLauncher<Intent>) {
+        Log.d(TAG, "onPickImageFromGallery")
         pickFromGalleryLauncher.launch(
             Intent(Intent.ACTION_GET_CONTENT).apply {
                 type = "image/*"
@@ -174,6 +214,7 @@ class EditElementViewModel @Inject constructor(
     }
 
     fun onImageFromGalleryPicked(activityResult: ActivityResult) {
+        Log.d(TAG, "onImageFromGalleryPicked")
         val data: Uri =
             activityResult.data?.data.takeIf { activityResult.resultCode == Activity.RESULT_OK }
                 ?: return
@@ -193,6 +234,7 @@ class EditElementViewModel @Inject constructor(
     }
 
     fun onPhotoPicturePreviewReady(bitmap: Bitmap) {
+        Log.d(TAG, "onPhotoPicturePreviewReady")
         viewModelScope.launch {
             try {
                 val uuid = imageCache.saveImageFromBitmap(bitmap)
@@ -209,6 +251,7 @@ class EditElementViewModel @Inject constructor(
     }
 
     fun onPickImageFromCamera(pickFromCameraLauncher: ActivityResultLauncher<Void?>) {
+        Log.d(TAG, "onPickImageFromCamera")
         pickFromCameraLauncher.launch()
     }
 }

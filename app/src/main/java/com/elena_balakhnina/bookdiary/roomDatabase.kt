@@ -23,6 +23,8 @@ data class BookDbEntity(
     @ColumnInfo(name = "rating") val rating: Int,
     @ColumnInfo(name = "genre") val genreId: Long,
     @ColumnInfo(name = "image") val image: String?,
+    @ColumnInfo(name = "showRateAndDate") val showRateAndDate : Boolean,
+    @ColumnInfo(name = "isFavorite") val isFavorite : Boolean
 )
 
 @Entity(tableName = "genres")
@@ -81,9 +83,12 @@ interface BooksDao {
     @Query("SELECT * FROM books WHERE rating > 0")
     fun getRatedBooks(): Flow<List<BookDbEntity>>
 
+    @Query("SELECT * FROM books WHERE isFavorite")
+    fun getFavoriteBooks(): Flow<List<BookDbEntity>>
+
 }
 
-@Database(entities = [BookDbEntity::class, GenreDBEntity::class], version = 7)
+@Database(entities = [BookDbEntity::class, GenreDBEntity::class], version = 8)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bookDao(): BooksDao
 

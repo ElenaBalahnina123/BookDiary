@@ -1,5 +1,6 @@
 package com.elena_balakhnina.bookdiary
 
+import android.util.Log
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -23,6 +24,8 @@ data class BookEntity(
     val rating: Int,
     val genre: Genre,
     val image: String?,
+    val showRateAndDate : Boolean,
+    val isFavorite : Boolean
 )
 
 //data class GenresEntity(
@@ -45,21 +48,30 @@ interface BooksRepository {
     suspend fun getAll(): List<BookEntity>
     suspend fun delete(bookId: Long)
 
-    //Получить последовательный список книг
-    fun booksFlow(): Flow<List<BookEntity>>
-
     fun plannedBooksFlow(): Flow<List<BookEntity>>
+
+    fun favoriteBooksFlow(): Flow<List<BookEntity>>
 
     fun ratedBooksFlow(): Flow<List<BookEntity>>
 
     //Получить одну прочитанную книгу по bookId
     fun bookEntityFlow(bookId: Long): Flow<BookEntity>
+    suspend fun setFavorite(bookId: Long, isFavorite: Boolean)
 }
 
 class BooksRepositoryImpl @Inject constructor(
     private val booksDao: BooksDao,
     private val genresDao: GenreDao,
 ) : BooksRepository {
+
+    override suspend fun setFavorite(bookId: Long, isFavorite: Boolean) {
+        booksDao.getById(bookId)?.copy(
+            isFavorite = isFavorite
+        )?.let {
+            booksDao.updateBook(it)
+            Log.d("OLOLO","book with $bookId set favorite to $isFavorite")
+        }
+    }
 
     override fun plannedBooksFlow(): Flow<List<BookEntity>> {
         return flow {
@@ -74,22 +86,21 @@ class BooksRepositoryImpl @Inject constructor(
                         date = it.date,
                         rating = it.rating,
                         image = it.image,
-                        genre = genres[it.genreId]!!
+                        genre = genres[it.genreId]!!,
+                        showRateAndDate = it.showRateAndDate,
+                        isFavorite = it.isFavorite
                     )
                 }
             }.collect {
                 emit(it)
             }
         }.flowOn(Dispatchers.IO)
-        /*return booksDao.getPlannedBooks().map {
-            it.map { it.toBookEntity() }
-        }.flowOn(Dispatchers.IO)*/
     }
 
-    override fun ratedBooksFlow(): Flow<List<BookEntity>> {
+    override fun favoriteBooksFlow(): Flow<List<BookEntity>> {
         return flow {
             val genres: Map<Long, GenreDBEntity> = genresDao.getAllGenres().associateBy { it.id }
-            booksDao.getRatedBooks().map {
+            booksDao.getFavoriteBooks().map {
                 it.map {
                     BookEntity(
                         id = it.id,
@@ -99,7 +110,38 @@ class BooksRepositoryImpl @Inject constructor(
                         date = it.date,
                         rating = it.rating,
                         image = it.image,
-                        genre = genres[it.genreId]!!
+                        genre = genres[it.genreId]!!,
+                        showRateAndDate = it.showRateAndDate,
+                        isFavorite = it.isFavorite
+                    )
+                }
+            }.collect {
+                emit(it)
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    override fun ratedBooksFlow(): Flow<List<BookEntity>> {
+        return flow {
+            val genres: Map<Long, GenreDBEntity> = genresDao.getAllGenres().associateBy { it.id }
+            booksDao.getRatedBooks().map {
+                it.map {
+
+                    val genre = requireNotNull(genres[it.genreId]) {
+                        "genre with id ${it.genreId} not found! (total genres count: ${genres.size})"
+                    }
+
+                    BookEntity(
+                        id = it.id,
+                        bookTitle = it.bookTitle,
+                        author = it.author,
+                        description = it.description,
+                        date = it.date,
+                        rating = it.rating,
+                        image = it.image,
+                        genre = genre,
+                        showRateAndDate = it.showRateAndDate,
+                        isFavorite = it.isFavorite
                     )
                 }
             }.collect {
@@ -119,6 +161,8 @@ class BooksRepositoryImpl @Inject constructor(
             rating = rating,
             image = image,
             genreId = genre.id,
+            showRateAndDate = showRateAndDate,
+            isFavorite = isFavorite
         )
     }
 
@@ -132,7 +176,9 @@ class BooksRepositoryImpl @Inject constructor(
             date = date,
             rating = rating,
             image = image,
-            genre = genresDao.getByIdGenre(genreId)?.toGenreEntity()!!
+            genre = genresDao.getByIdGenre(genreId)?.toGenreEntity()!!,
+            showRateAndDate = showRateAndDate,
+            isFavorite = isFavorite
         )
     }
 
@@ -145,19 +191,6 @@ class BooksRepositoryImpl @Inject constructor(
             it?.toBookEntity()
         }
     }
-//
-//    override suspend fun getAllGenres(): Flow<List<Genre>> {
-//        return booksDao.getAllGenresFlow().map {
-//            it.map {
-//                it.toGenreEntity()
-//            }
-//        }
-//    }
-//
-//    override suspend fun insertGenres(addGenre: List<Genre>) {
-//
-//    }
-
 
     override suspend fun save(book: BookEntity) {
         val dbBook = book.toDbEntity()
@@ -180,11 +213,4 @@ class BooksRepositoryImpl @Inject constructor(
     override suspend fun delete(bookId: Long) {
         booksDao.delete(bookId)
     }
-
-    override fun booksFlow(): Flow<List<BookEntity>> {
-        return booksDao.getAllBooksFlow().map { list ->
-            list.map { it.toBookEntity()}
-        }
-    }
-
 }

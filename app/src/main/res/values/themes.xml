@@ -2,5 +2,6 @@
 <resources>
 
     <style name="Theme.BookDiary" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#FF03A9F4</item>
     </style>
 </resources>

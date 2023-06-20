@@ -1,15 +1,11 @@
-package com.elena_balakhnina.bookdiary.booklist
+package com.elena_balakhnina.bookdiary.favoritebooklist
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,8 +21,7 @@ import kotlinx.coroutines.flow.emptyFlow
 
 @Preview
 @Composable
-fun BookList(
-    onAddClick: () -> Unit = {},
+fun FavoriteList(
     stateFlow: Flow<List<BookListItemData>> = emptyFlow(),
     onBookClick: (Int) -> Unit = {},
     onToggleFavorite: (Int)->Unit = {},
@@ -40,17 +35,9 @@ fun BookList(
                     }
                 )
             },
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = onAddClick,
-                ) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                }
-            },
-
             ) { paddingValues ->
-            val list by stateFlow.collectAsState(emptyList())
 
+            val list by stateFlow.collectAsState(emptyList())
 
             LazyColumn(
                 modifier = Modifier.padding(paddingValues),
@@ -65,6 +52,6 @@ fun BookList(
                 }
             }
         }
-
     }
 }
+

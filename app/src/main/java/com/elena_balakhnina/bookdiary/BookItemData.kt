@@ -11,5 +11,6 @@ data class BookItemData(
     val rating: Int?,
     val genre: String,
     val image: ImageBitmap?,
-    val rate : Boolean
+    val rate : Boolean,
+    val isFavorite : Boolean
 )

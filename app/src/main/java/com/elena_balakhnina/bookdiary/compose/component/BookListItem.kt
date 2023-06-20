@@ -1,16 +1,20 @@
-package com.elena_balakhnina.bookdiary
+package com.elena_balakhnina.bookdiary.compose.component
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -21,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
-import com.elena_balakhnina.bookdiary.compose.component.Circle
+import com.elena_balakhnina.bookdiary.R
 
 
 class BookItemDataPreviewProvider : PreviewParameterProvider<BookListItemData> {
@@ -39,7 +43,8 @@ class BookItemDataPreviewProvider : PreviewParameterProvider<BookListItemData> {
                     rating = 9,
                     genre = "Романтика",
                     image = null,
-                    rate = true
+                    showRate = true,
+                    isFavorite = false
                 )
             )
         }
@@ -53,7 +58,8 @@ data class BookListItemData(
     val rating: Int?,
     val genre: String,
     val image: ImageBitmap?,
-    val rate: Boolean
+    val showRate: Boolean,
+    val isFavorite : Boolean
 )
 
 @Preview
@@ -62,8 +68,8 @@ fun BookListItem(
     @PreviewParameter(BookItemDataPreviewProvider::class)
     itemData: BookListItemData,
     onClick: () -> Unit = {},
-    onClickAddFavorite: () -> Unit = {},
-    showRatingAndData: Boolean = false
+    onFavoriteToggle: ()->Unit = {},
+    showRatingAndData: Boolean = true
 ) {
 
     ConstraintLayout(
@@ -120,13 +126,32 @@ fun BookListItem(
         )
         if (showRatingAndData) {
             IconButton(
-                onClick = onClickAddFavorite,
-                modifier = Modifier.constrainAs(favoriteButton) {
-                    start.linkTo(parent.start)
-                    top.linkTo(parent.top)
-                }
+                onClick = onFavoriteToggle,
+                modifier = Modifier
+                    .constrainAs(favoriteButton) {
+                        top.linkTo(parent.top, 8.dp)
+                        start.linkTo(parent.start, 8.dp)
+
+                        width = Dimension.value(32.dp)
+                        height = Dimension.value(32.dp)
+                    }
+                    .background(
+                        color = Color(0x77000000),
+                        shape = CircleShape
+                    )
+                    .padding(4.dp)
+                ,
             ) {
-                Circle()
+                Icon(
+                    tint = Color(0xFFFF001E),
+                    modifier = Modifier,
+                    imageVector = if (itemData.isFavorite) {
+                        Icons.Filled.Favorite
+                    } else {
+                        Icons.Default.FavoriteBorder
+                    },
+                    contentDescription = null
+                )
             }
         }
         Text(
@@ -144,7 +169,7 @@ fun BookListItem(
         if (showRatingAndData) {
             if (itemData.date != null) {
                 Text(
-                    text = String.format("%1\$td.%1\$tm.%1\$ty", itemData.date),
+                    text = itemData.date/*String.format("%1\$td.%1\$tm.%1\$ty", itemData.date)*/,
                     modifier = Modifier.constrainAs(date) {
                         start.linkTo(image.end, 16.dp)
                         top.linkTo(description.bottom, 8.dp)

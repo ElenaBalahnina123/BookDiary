@@ -1,8 +1,19 @@
 package com.elena_balakhnina.bookdiary
 
+import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -21,10 +32,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.elena_balakhnina.bookdiary.edit.ARG_RATE_MODE
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,17 +49,23 @@ class ViewElementVM @Inject constructor(
     private val imageCache: ImageCache,
 ) : ViewModel() {
     private val bookId = savedStateHandle.get<Long>("book_id")
-    private val rateMode = savedStateHandle.get<Boolean>(ARG_RATE_MODE) ?: false
+    private val plannedMode = savedStateHandle.get<Boolean>("planned_mode") ?: false
 
     private val mutableState = MutableStateFlow<BookEntity?>(null)
 
     init {
+        Log.d("ViewElement", "plannedMode: $plannedMode")
+
         if (bookId != null) {
             viewModelScope.launch {
                 repository.getById(bookId)?.let {
                     mutableState.value = it
+                } ?: kotlin.run {
+                    Log.e("ViewElement","book $bookId not found")
                 }
             }
+        } else {
+            Log.e("ViewElement","bookId not set")
         }
     }
 
@@ -61,7 +80,7 @@ class ViewElementVM @Inject constructor(
                 rating = it.rating,
                 genre = it.genre.genre,
                 image = imageCache.getBitmapFromCache(it.image),
-                allowRate = rateMode,
+                allowRate = !plannedMode,
             )
         }
 
@@ -120,7 +139,9 @@ fun ViewElementScreen(
             )
         }) {
             Column(
-                modifier = Modifier.padding(it).padding(12.dp)
+                modifier = Modifier
+                    .padding(it)
+                    .padding(12.dp)
             ) {
 
                 Box {
