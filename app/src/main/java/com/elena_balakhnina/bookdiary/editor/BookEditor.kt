@@ -1,4 +1,4 @@
-package com.elena_balakhnina.bookdiary
+package com.elena_balakhnina.bookdiary.editor
 
 import android.graphics.Bitmap
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -9,8 +9,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.elena_balakhnina.bookdiary.edit.EditElement
-import com.elena_balakhnina.bookdiary.edit.EditElementViewModel
 
 @Composable
 fun BookEditor(navController: NavController) {
@@ -33,7 +31,7 @@ fun BookEditor(navController: NavController) {
 
     val screenData by viewModel.uiFlow.collectAsState()
 
-    EditElement(
+    EditElementScreen(
         onSaveClick = { viewModel.saveClick(navController) },
         onTitleChange = viewModel::onTitleChange,
         onAuthorChange = viewModel::onAuthorChange,

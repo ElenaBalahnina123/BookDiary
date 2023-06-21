@@ -1,6 +1,5 @@
-package com.elena_balakhnina.bookdiary.edit
+package com.elena_balakhnina.bookdiary.editor
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -32,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -44,21 +42,8 @@ import com.elena_balakhnina.bookdiary.compose.component.Calendar
 import com.elena_balakhnina.bookdiary.compose.component.DropdownComponent
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 
-data class EditElementData(
-    val bookTitle: TextFieldValue,
-    val author: TextFieldValue,
-    val image: ImageBitmap?,
-    val description: TextFieldValue,
-    val selectedGenreIndex: Int,
-    val genres: List<String>,
-    val rating: Int,
-    val date: Long,
-    val allowRate: Boolean,
-    val isFavorite : Boolean
-)
-
 @Composable
-fun EditElement(
+fun EditElementScreen(
     data: EditElementData,
     onSaveClick: () -> Unit = {},
     onTitleChange: (TextFieldValue) -> Unit = {},
@@ -103,8 +88,6 @@ fun EditElement(
                     .padding(8.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
-                Log.d("OLOLO","recomposition, data: $data")
-
                 TextField(
                     value = data.bookTitle,
                     onValueChange = onTitleChange,
@@ -179,7 +162,7 @@ fun EditElement(
                     }
                 }
 //
-                if (data.allowRate) {
+                if (data.plannedMode) {
                     val ratings: List<String> = remember {
                         (1..10).map {
                             it.toString()
@@ -200,7 +183,7 @@ fun EditElement(
                     onSelectedOptionChange = onGenreChange
                 )
 
-                if (data.allowRate) {
+                if (data.plannedMode) {
                     Calendar(
                         date = data.date,
                         onDateChanged = onDateChanged,
@@ -213,7 +196,7 @@ fun EditElement(
                     label = {
                         Text(text = "Описание")
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     colors = TextFieldDefaults.textFieldColors(
                         backgroundColor = Color.Transparent
                     )

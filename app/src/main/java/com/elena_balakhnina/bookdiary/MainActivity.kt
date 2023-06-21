@@ -1,6 +1,7 @@
 package com.elena_balakhnina.bookdiary
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,15 +19,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.elena_balakhnina.bookdiary.booklist.BookList
+import com.elena_balakhnina.bookdiary.booklist.BookListScreen
 import com.elena_balakhnina.bookdiary.booklist.BookListViewModel
 import com.elena_balakhnina.bookdiary.compose.component.bottommenu.BottomMenuCompose
 import com.elena_balakhnina.bookdiary.compose.component.bottommenu.BottomNavItem
+import com.elena_balakhnina.bookdiary.editor.BookEditor
 import com.elena_balakhnina.bookdiary.favoritebooklist.FavoriteBookListViewModel
-import com.elena_balakhnina.bookdiary.favoritebooklist.FavoriteList
+import com.elena_balakhnina.bookdiary.favoritebooklist.FavoriteListScreen
 import com.elena_balakhnina.bookdiary.plannedbooklist.BookListViewModelPlanned
 import com.elena_balakhnina.bookdiary.plannedbooklist.PlannedBooks
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
+import com.elena_balakhnina.bookdiary.viewelement.ViewElementData
+import com.elena_balakhnina.bookdiary.viewelement.ViewElementScreen
+import com.elena_balakhnina.bookdiary.viewelement.ViewElementVM
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -74,7 +79,7 @@ private fun navigationContent() {
         ) {
             composable("books") {
                 val viewModel = hiltViewModel<BookListViewModel>()
-                BookList(
+                BookListScreen(
                     onAddClick = { navController.navigate("editor?allowRate=true") },
                     stateFlow = viewModel.booksFlow(),
                     onBookClick = { bookIndexInList -> viewModel.onBookClick(bookIndexInList, navController) },
@@ -83,7 +88,7 @@ private fun navigationContent() {
             }
             composable("favorite") {
                 val viewModel = hiltViewModel<FavoriteBookListViewModel>()
-                FavoriteList(
+                FavoriteListScreen(
                     stateFlow = viewModel.booksFlow(),
                     onBookClick = { bookIndexInList -> viewModel.onBookClick(bookIndexInList, navController) },
                     onToggleFavorite = { viewModel.onToggleFavorite(it) }
@@ -108,13 +113,18 @@ private fun navigationContent() {
                 )
             ) {
                 val bookId = it.arguments?.getLong("book_id") ?: 0L
+                val plannedMode = it.arguments?.getBoolean("planned_mode") ?: false
+                Log.d("ViewElement", "$plannedMode")
+
                 val viewModel = hiltViewModel<ViewElementVM>()
-                val state by viewModel.uiFlow().collectAsState(ViewElementScreenData())
+                val state by viewModel.uiFlow().collectAsState(ViewElementData())
+
                 ViewElementScreen(
                     navController = navController,
-                    onEditClick = { navController.navigate("editor?bookId=${bookId}&allowRate=true") },
+                    onEditClick = { navController.navigate("editor?bookId=${bookId}&allowRate=${!plannedMode}") },
                     onDelete = { viewModel.onDelete(navController) },
-                    viewElementScreenData = state
+                    viewElementData = state,
+
                 )
             }
             composable(

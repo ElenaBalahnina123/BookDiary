@@ -15,8 +15,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
-import com.elena_balakhnina.bookdiary.compose.component.BookListItem
-import com.elena_balakhnina.bookdiary.compose.component.BookListItemData
+import com.elena_balakhnina.bookdiary.booklistitem.BookListItemData
+import com.elena_balakhnina.bookdiary.booklistitem.BookListItemScreen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -50,7 +50,7 @@ fun PlannedBooks(
             modifier = Modifier.padding(paddingValues),
         ) {
             itemsIndexed(state.value) { index, item ->
-                BookListItem(itemData = item, onClick = {
+                BookListItemScreen(itemData = item, onClick = {
                     onBookClick(index)
                 }, showRatingAndData = false)
             }

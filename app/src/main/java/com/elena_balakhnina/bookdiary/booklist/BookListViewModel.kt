@@ -6,10 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.elena_balakhnina.bookdiary.BookItemData
-import com.elena_balakhnina.bookdiary.BooksRepository
-import com.elena_balakhnina.bookdiary.ImageCache
-import com.elena_balakhnina.bookdiary.compose.component.BookListItemData
-import com.elena_balakhnina.bookdiary.edit.ARG_RATE_MODE
+import com.elena_balakhnina.bookdiary.booklistitem.BookListItemData
+import com.elena_balakhnina.bookdiary.domain.BooksRepository
+import com.elena_balakhnina.bookdiary.domain.ImageCache
+import com.elena_balakhnina.bookdiary.editor.ARG_PLANNED_MODE
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,14 +24,14 @@ class BookListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val rateMode = savedStateHandle.get<Boolean>(ARG_RATE_MODE) ?: false
+    private val plannedMode = savedStateHandle.get<Boolean>(ARG_PLANNED_MODE) ?: false
 
     private val mutableStateFlow = MutableStateFlow(BookListVmState())
 
     init {
         viewModelScope.launch {
             booksRepository.ratedBooksFlow().collect { bookEntities ->
-                Log.d("OLOLO","got rated book list, count: $bookEntities")
+                Log.d("BookListViewModel", "got rated book list, count: $bookEntities")
                 mutableStateFlow.value = mutableStateFlow.value.copy(
                     books = bookEntities.map {
                         BookItemData(
@@ -43,7 +43,7 @@ class BookListViewModel @Inject constructor(
                             genre = it.genre.genre,
                             image = cache.getBitmapFromCache(it.image),
                             bookId = requireNotNull(it.id),
-                            rate = rateMode,
+                            plannedMode = plannedMode,
                             isFavorite = it.isFavorite
                         )
                     }
@@ -53,8 +53,8 @@ class BookListViewModel @Inject constructor(
     }
 
     fun booksFlow(): Flow<List<BookListItemData>> {
-        return mutableStateFlow.map {
-            it.books.map {
+        return mutableStateFlow.map { bookListVmState ->
+            bookListVmState.books.map {
                 BookListItemData(
                     bookTitle = it.bookTitle,
                     author = it.author,
@@ -63,7 +63,7 @@ class BookListViewModel @Inject constructor(
                     rating = it.rating,
                     genre = it.genre,
                     image = it.image,
-                    showRate = rateMode,
+                    showRatingAndData = plannedMode,
                     isFavorite = it.isFavorite
                 )
             }
@@ -76,7 +76,7 @@ class BookListViewModel @Inject constructor(
     }
 
     fun onToggleFavorite(it: Int) {
-        Log.d("OLOLO", "onToggleFavorite $it")
+        Log.d("BookListViewModel", "onToggleFavorite $it")
         val book = mutableStateFlow.value.books[it]
         viewModelScope.launch {
             booksRepository.setFavorite(book.bookId, !book.isFavorite)
