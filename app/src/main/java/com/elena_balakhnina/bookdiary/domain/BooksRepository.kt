@@ -1,6 +1,10 @@
-package com.elena_balakhnina.bookdiary
+package com.elena_balakhnina.bookdiary.domain
 
 import android.util.Log
+import com.elena_balakhnina.bookdiary.database.BookDbEntity
+import com.elena_balakhnina.bookdiary.database.BooksDao
+import com.elena_balakhnina.bookdiary.database.GenreDBEntity
+import com.elena_balakhnina.bookdiary.database.GenreDao
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -24,14 +28,9 @@ data class BookEntity(
     val rating: Int,
     val genre: Genre,
     val image: String?,
-    val showRateAndDate : Boolean,
+    val plannedMode : Boolean,
     val isFavorite : Boolean
 )
-
-//data class GenresEntity(
-//    val id : Long,
-//    val genre: String
-//)
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -87,7 +86,7 @@ class BooksRepositoryImpl @Inject constructor(
                         rating = it.rating,
                         image = it.image,
                         genre = genres[it.genreId]!!,
-                        showRateAndDate = it.showRateAndDate,
+                        plannedMode = it.showRateAndDate,
                         isFavorite = it.isFavorite
                     )
                 }
@@ -111,7 +110,7 @@ class BooksRepositoryImpl @Inject constructor(
                         rating = it.rating,
                         image = it.image,
                         genre = genres[it.genreId]!!,
-                        showRateAndDate = it.showRateAndDate,
+                        plannedMode = it.showRateAndDate,
                         isFavorite = it.isFavorite
                     )
                 }
@@ -140,7 +139,7 @@ class BooksRepositoryImpl @Inject constructor(
                         rating = it.rating,
                         image = it.image,
                         genre = genre,
-                        showRateAndDate = it.showRateAndDate,
+                        plannedMode = it.showRateAndDate,
                         isFavorite = it.isFavorite
                     )
                 }
@@ -161,7 +160,7 @@ class BooksRepositoryImpl @Inject constructor(
             rating = rating,
             image = image,
             genreId = genre.id,
-            showRateAndDate = showRateAndDate,
+            showRateAndDate = plannedMode,
             isFavorite = isFavorite
         )
     }
@@ -177,7 +176,7 @@ class BooksRepositoryImpl @Inject constructor(
             rating = rating,
             image = image,
             genre = genresDao.getByIdGenre(genreId)?.toGenreEntity()!!,
-            showRateAndDate = showRateAndDate,
+            plannedMode = showRateAndDate,
             isFavorite = isFavorite
         )
     }

@@ -1,4 +1,4 @@
-package com.elena_balakhnina.bookdiary.edit
+package com.elena_balakhnina.bookdiary.editor
 
 import android.app.Activity
 import android.content.Context
@@ -15,10 +15,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.elena_balakhnina.bookdiary.BookEntity
-import com.elena_balakhnina.bookdiary.BooksRepository
-import com.elena_balakhnina.bookdiary.GenresRepository
-import com.elena_balakhnina.bookdiary.ImageCache
+import com.elena_balakhnina.bookdiary.domain.BookEntity
+import com.elena_balakhnina.bookdiary.domain.BooksRepository
+import com.elena_balakhnina.bookdiary.domain.GenresRepository
+import com.elena_balakhnina.bookdiary.domain.ImageCache
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 const val ARG_BOOK_ID = "book_id"
-const val ARG_RATE_MODE = "allow_rate"
+const val ARG_PLANNED_MODE = "allow_rate"
 const val ARG_FAVORITE = "isFavorite"
 
 @HiltViewModel
@@ -49,19 +49,19 @@ class EditElementViewModel @Inject constructor(
         private const val TAG = "EditElementVM"
     }
 
-    private val bookId = savedStateHandle.get<Long>(ARG_BOOK_ID)
-    private val rateMode = savedStateHandle.get<Boolean>(ARG_RATE_MODE) ?: false
+    private val bookId = savedStateHandle.get<Long>(ARG_BOOK_ID)?.takeIf { it > 0 }
+    private val plannedMode = savedStateHandle.get<Boolean>(ARG_PLANNED_MODE) ?: false
 
     private val mutableState = MutableStateFlow(
         EditElementVmState(
-            allowRate = rateMode.also {
+            plannedMode = plannedMode.also {
                 Log.d(TAG, "rate mode: $it")
             }
         )
     )
 
     init {
-        Log.d(TAG, "rateMode: $rateMode")
+        Log.d(TAG, "rateMode: $plannedMode")
         Log.d(TAG, "bookId: $bookId")
 
         viewModelScope.launch {
@@ -77,7 +77,7 @@ class EditElementViewModel @Inject constructor(
                     date = it.date,
                     rating = it.rating,
                     image = it.image,
-                    allowRate = rateMode,
+                    plannedMode = plannedMode,
                     selectedGenreIndex = genres.indexOf(it.genre),
                     genres = genres
                 )
@@ -101,7 +101,7 @@ class EditElementViewModel @Inject constructor(
                 return@launch
             }
 
-            if (rateMode) {
+            if (plannedMode) {
                 if (state.rating == -1) {
                     Toast.makeText(context, "Введите рейтинг", Toast.LENGTH_SHORT).show()
                     return@launch
@@ -125,7 +125,7 @@ class EditElementViewModel @Inject constructor(
                     rating = state.rating,
                     image = state.image,
                     genre = genre,
-                    showRateAndDate = state.allowRate,
+                    plannedMode = state.plannedMode,
                     isFavorite = state.isFavorite
                 )
             )
@@ -137,7 +137,7 @@ class EditElementViewModel @Inject constructor(
         EditElementData(
             bookTitle = viewModelState.bookTitle,
             selectedGenreIndex = viewModelState.selectedGenreIndex,
-            allowRate = viewModelState.allowRate,
+            plannedMode = viewModelState.plannedMode,
             date = viewModelState.date,
             rating = viewModelState.rating,
             image = imageCache.getBitmapFromCache(viewModelState.image),
@@ -154,7 +154,7 @@ class EditElementViewModel @Inject constructor(
             author = TextFieldValue(),
             image = null,
             isFavorite = false,
-            allowRate = false,
+            plannedMode = false,
             genres = emptyList(),
             description = TextFieldValue(),
             rating = 0,
@@ -228,7 +228,7 @@ class EditElementViewModel @Inject constructor(
                 mutableState.value = mutableState.value.copy(image = uuid)
             } catch (err: Throwable) {
                 mutableState.value = mutableState.value.copy(image = null)
-                Log.e("EditElement", "unable to save image from gallery", err)
+                Log.e("EditElementScreen", "unable to save image from gallery", err)
             }
         }
     }
@@ -245,7 +245,7 @@ class EditElementViewModel @Inject constructor(
                 mutableState.value = mutableState.value.copy(image = uuid)
             } catch (err: Throwable) {
                 mutableState.value = mutableState.value.copy(image = null)
-                Log.e("EditElement", "unable to save image from camera", err)
+                Log.e("EditElementScreen", "unable to save image from camera", err)
             }
         }
     }

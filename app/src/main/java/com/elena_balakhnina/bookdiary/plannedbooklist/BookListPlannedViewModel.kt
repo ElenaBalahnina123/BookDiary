@@ -6,12 +6,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.elena_balakhnina.bookdiary.BookItemData
-import com.elena_balakhnina.bookdiary.BooksRepository
-import com.elena_balakhnina.bookdiary.ImageCache
 import com.elena_balakhnina.bookdiary.booklist.BookListVmState
-import com.elena_balakhnina.bookdiary.compose.component.BookListItemData
-import com.elena_balakhnina.bookdiary.edit.ARG_FAVORITE
-import com.elena_balakhnina.bookdiary.edit.ARG_RATE_MODE
+import com.elena_balakhnina.bookdiary.booklistitem.BookListItemData
+import com.elena_balakhnina.bookdiary.domain.BooksRepository
+import com.elena_balakhnina.bookdiary.domain.ImageCache
+import com.elena_balakhnina.bookdiary.editor.ARG_FAVORITE
+import com.elena_balakhnina.bookdiary.editor.ARG_PLANNED_MODE
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +26,7 @@ class BookListViewModelPlanned @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val rateMode = savedStateHandle.get<Boolean>(ARG_RATE_MODE) ?: false
+    val rateMode = savedStateHandle.get<Boolean>(ARG_PLANNED_MODE) ?: false
     val isFavorite = savedStateHandle.get<Boolean>(ARG_FAVORITE) ?: false
 
     private val mutableStateFlow = MutableStateFlow(BookListVmState())
@@ -46,7 +46,7 @@ class BookListViewModelPlanned @Inject constructor(
                                 genre = it.genre.genre,
                                 image = cache.getBitmapFromCache(it.image),
                                 bookId = requireNotNull(it.id),
-                                rate = rateMode,
+                                plannedMode = rateMode,
                                 isFavorite = isFavorite
                             )
                         }
@@ -68,7 +68,7 @@ class BookListViewModelPlanned @Inject constructor(
                     rating = it.rating,
                     genre = it.genre,
                     image = it.image,
-                    showRate = rateMode,
+                    showRatingAndData = rateMode,
                     isFavorite = isFavorite
                 )
             }

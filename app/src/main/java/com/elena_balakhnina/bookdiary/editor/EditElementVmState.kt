@@ -1,7 +1,7 @@
-package com.elena_balakhnina.bookdiary.edit
+package com.elena_balakhnina.bookdiary.editor
 
 import androidx.compose.ui.text.input.TextFieldValue
-import com.elena_balakhnina.bookdiary.Genre
+import com.elena_balakhnina.bookdiary.domain.Genre
 
 data class EditElementVmState(
     val bookTitle: TextFieldValue = TextFieldValue(),
@@ -10,7 +10,7 @@ data class EditElementVmState(
     val date: Long = System.currentTimeMillis(),
     val rating: Int = -1,
     val image: String? = null,
-    val allowRate: Boolean = false,
+    val plannedMode: Boolean = false,
     val isFavorite: Boolean = false,
     val genres: List<Genre> = emptyList(),
     val selectedGenreIndex: Int = -1,

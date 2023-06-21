@@ -1,4 +1,4 @@
-package com.elena_balakhnina.bookdiary
+package com.elena_balakhnina.bookdiary.domain
 
 import android.content.Context
 import android.graphics.Bitmap

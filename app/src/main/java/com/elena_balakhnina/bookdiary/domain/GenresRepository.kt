@@ -1,6 +1,8 @@
-package com.elena_balakhnina.bookdiary
+package com.elena_balakhnina.bookdiary.domain
 
 import android.util.Log
+import com.elena_balakhnina.bookdiary.database.GenreDBEntity
+import com.elena_balakhnina.bookdiary.database.GenreDao
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

@@ -1,4 +1,4 @@
-package com.elena_balakhnina.bookdiary.compose.component
+package com.elena_balakhnina.bookdiary.booklistitem
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,28 +42,16 @@ class BookItemDataPreviewProvider : PreviewParameterProvider<BookListItemData> {
                     rating = 9,
                     genre = "Романтика",
                     image = null,
-                    showRate = true,
+                    showRatingAndData = true,
                     isFavorite = false
                 )
             )
         }
 }
 
-data class BookListItemData(
-    val bookTitle: String,
-    val author: String,
-    val description: String,
-    val date: String?,
-    val rating: Int?,
-    val genre: String,
-    val image: ImageBitmap?,
-    val showRate: Boolean,
-    val isFavorite : Boolean
-)
-
 @Preview
 @Composable
-fun BookListItem(
+fun BookListItemScreen(
     @PreviewParameter(BookItemDataPreviewProvider::class)
     itemData: BookListItemData,
     onClick: () -> Unit = {},
