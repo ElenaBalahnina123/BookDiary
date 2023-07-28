@@ -12,17 +12,20 @@ import javax.inject.Singleton
 
 @Dao
 interface GenreDao {
-    @Query("SELECT COUNT(id) FROM genres")
+    @Query("SELECT COUNT(fb_id) FROM genres")
     suspend fun countGenres(): Long
 
     @Query("SELECT * FROM genres")
     suspend fun getAllGenres(): List<GenreDBEntity>
 
+    @Query("DELETE FROM genres")
+    suspend fun deleteAllGenres()
+
     @Insert
     suspend fun insertGenres(list: List<GenreDBEntity>)
 
-    @Query("SELECT * FROM genres WHERE id = :id LIMIT 1")
-    suspend fun getByIdGenre(id: Long): GenreDBEntity?
+    @Query("SELECT * FROM genres WHERE fb_id = :id LIMIT 1")
+    suspend fun getByIdGenre(id: String): GenreDBEntity?
 }
 
 
@@ -64,7 +67,7 @@ interface BooksDao {
 
 }
 
-@Database(entities = [BookDbEntity::class, GenreDBEntity::class], version = 8)
+@Database(entities = [BookDbEntity::class, GenreDBEntity::class], version = 10)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bookDao(): BooksDao
 

@@ -1,5 +1,6 @@
 package com.elena_balakhnina.bookdiary.plannedbooklist
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -14,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.elena_balakhnina.bookdiary.booklistitem.BookListItemData
 import com.elena_balakhnina.bookdiary.booklistitem.BookListItemScreen
@@ -45,6 +48,11 @@ fun PlannedBooks(
         ) { paddingValues ->
 
         val state = stateFlow.collectAsState(emptyList())
+
+        if(state.value.isEmpty()) {
+            Text(text = "Нет запланированных книг", fontSize = 20.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxSize().padding(16.dp))
+        }
+
 
         LazyColumn(
             modifier = Modifier.padding(paddingValues),

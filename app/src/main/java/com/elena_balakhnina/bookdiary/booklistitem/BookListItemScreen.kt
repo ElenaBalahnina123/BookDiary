@@ -11,12 +11,15 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -49,7 +52,7 @@ class BookItemDataPreviewProvider : PreviewParameterProvider<BookListItemData> {
         }
 }
 
-@Preview
+@Preview(device = Devices.NEXUS_7)
 @Composable
 fun BookListItemScreen(
     @PreviewParameter(BookItemDataPreviewProvider::class)
@@ -111,6 +114,9 @@ fun BookListItemScreen(
                 top.linkTo(bookTitle.bottom, 4.dp)
             }
         )
+
+        val scope = rememberCoroutineScope()
+        val scaffoldState = rememberScaffoldState()
         if (showRatingAndData) {
             IconButton(
                 onClick = onFavoriteToggle,
@@ -165,11 +171,13 @@ fun BookListItemScreen(
             }
             if (itemData.rating != null) {
                 Image(
-                    painter = painterResource(id = R.drawable.star),
+                    painter = painterResource(id = R.drawable.star_rate_white_24dp),
                     contentDescription = null,
                     modifier = Modifier.constrainAs(ratingImage) {
                         top.linkTo(description.bottom, 8.dp)
                         end.linkTo(rating.start, 4.dp)
+                        width = Dimension.value(24.dp)
+                        height = Dimension.value(24.dp)
                     }
                 )
                 Text(

@@ -42,6 +42,7 @@ import com.elena_balakhnina.bookdiary.compose.component.Calendar
 import com.elena_balakhnina.bookdiary.compose.component.DropdownComponent
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 
+
 @Composable
 fun EditElementScreen(
     data: EditElementData,
@@ -54,7 +55,10 @@ fun EditElementScreen(
     onGenreChange: (Int) -> Unit = {},
     onRatingChanged: (Int) -> Unit = {},
     onDateChanged: (Long) -> Unit = {},
-    onPopBackStack: () -> Unit = {}
+    onPopBackStack: () -> Unit = {},
+
+
+
 ) {
     BookDiaryTheme {
         Scaffold(
@@ -143,25 +147,24 @@ fun EditElementScreen(
                             modifier = Modifier.padding(end = 8.dp)
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.gallery),
+                                painter = painterResource(id = R.drawable.collections_white_24dp),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .width(24.dp),
-                                contentScale = ContentScale.Crop,
+                                contentScale = ContentScale.Inside,
                             )
                         }
                         Button(onClick = onClickCamera) {
                             Image(
-                                painter = painterResource(id = R.drawable.camera),
+                                painter = painterResource(id = R.drawable.add_a_photo_white_24dp),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .width(24.dp),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Inside
                             )
                         }
                     }
                 }
-//
                 if (data.plannedMode) {
                     val ratings: List<String> = remember {
                         (1..10).map {

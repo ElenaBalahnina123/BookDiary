@@ -1,5 +1,6 @@
 package com.elena_balakhnina.bookdiary.favoritebooklist
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -11,7 +12,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.elena_balakhnina.bookdiary.booklistitem.BookListItemData
 import com.elena_balakhnina.bookdiary.booklistitem.BookListItemScreen
@@ -37,12 +40,15 @@ fun FavoriteListScreen(
             },
         ) { paddingValues ->
 
-            val list by stateFlow.collectAsState(emptyList())
+            val listBook by stateFlow.collectAsState(emptyList())
 
+            if(listBook.isEmpty()) {
+                Text(text = "Нет избранных книг", fontSize = 20.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxSize().padding(16.dp))
+            }
             LazyColumn(
                 modifier = Modifier.padding(paddingValues),
             ) {
-                itemsIndexed(list) { index, item ->
+                itemsIndexed(listBook) { index, item ->
                     BookListItemScreen(
                         itemData = item,
                         onClick = { onBookClick(index) },

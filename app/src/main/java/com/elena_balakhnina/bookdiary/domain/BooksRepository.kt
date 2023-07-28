@@ -28,8 +28,8 @@ data class BookEntity(
     val rating: Int,
     val genre: Genre,
     val image: String?,
-    val plannedMode : Boolean,
-    val isFavorite : Boolean
+    val plannedMode: Boolean,
+    val isFavorite: Boolean
 )
 
 @Module
@@ -53,8 +53,8 @@ interface BooksRepository {
 
     fun ratedBooksFlow(): Flow<List<BookEntity>>
 
-    //Получить одну прочитанную книгу по bookId
     fun bookEntityFlow(bookId: Long): Flow<BookEntity>
+
     suspend fun setFavorite(bookId: Long, isFavorite: Boolean)
 }
 
@@ -68,15 +68,16 @@ class BooksRepositoryImpl @Inject constructor(
             isFavorite = isFavorite
         )?.let {
             booksDao.updateBook(it)
-            Log.d("OLOLO","book with $bookId set favorite to $isFavorite")
+            Log.d("OLOLO", "book with $bookId set favorite to $isFavorite")
         }
     }
 
     override fun plannedBooksFlow(): Flow<List<BookEntity>> {
         return flow {
-            val genres: Map<Long, GenreDBEntity> = genresDao.getAllGenres().associateBy { it.id }
-            booksDao.getPlannedBooks().map {
-                it.map {
+            val genres: Map<String, GenreDBEntity> =
+                genresDao.getAllGenres().associateBy { it.fbId }
+            booksDao.getPlannedBooks().map { bookDbEntities ->
+                bookDbEntities.map {
                     BookEntity(
                         id = it.id,
                         bookTitle = it.bookTitle,
@@ -98,7 +99,8 @@ class BooksRepositoryImpl @Inject constructor(
 
     override fun favoriteBooksFlow(): Flow<List<BookEntity>> {
         return flow {
-            val genres: Map<Long, GenreDBEntity> = genresDao.getAllGenres().associateBy { it.id }
+            val genres: Map<String, GenreDBEntity> =
+                genresDao.getAllGenres().associateBy { it.fbId }
             booksDao.getFavoriteBooks().map {
                 it.map {
                     BookEntity(
@@ -122,9 +124,10 @@ class BooksRepositoryImpl @Inject constructor(
 
     override fun ratedBooksFlow(): Flow<List<BookEntity>> {
         return flow {
-            val genres: Map<Long, GenreDBEntity> = genresDao.getAllGenres().associateBy { it.id }
-            booksDao.getRatedBooks().map {
-                it.map {
+            val genres: Map<String, GenreDBEntity> =
+                genresDao.getAllGenres().associateBy { it.fbId }
+            booksDao.getRatedBooks().map { bookDbEntities ->
+                bookDbEntities.map {
 
                     val genre = requireNotNull(genres[it.genreId]) {
                         "genre with id ${it.genreId} not found! (total genres count: ${genres.size})"
@@ -149,7 +152,6 @@ class BooksRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
     }
 
-    //Метод расширения для BookEntity, который в итоге будет возвращать BookDbEntity
     private fun BookEntity.toDbEntity(): BookDbEntity {
         return BookDbEntity(
             id = id,
@@ -159,13 +161,12 @@ class BooksRepositoryImpl @Inject constructor(
             date = date,
             rating = rating,
             image = image,
-            genreId = genre.id,
+            genreId = genre.fbId,
             showRateAndDate = plannedMode,
             isFavorite = isFavorite
         )
     }
 
-    //Метод расширения для BookDbEntity, который в итоге будет возвращать BookEntity
     private suspend fun BookDbEntity.toBookEntity(): BookEntity {
         return BookEntity(
             id = id,
