@@ -1,5 +1,6 @@
 package com.elena_balakhnina.bookdiary.viewelement
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,6 +10,7 @@ import com.elena_balakhnina.bookdiary.domain.BookEntity
 import com.elena_balakhnina.bookdiary.domain.BooksRepository
 import com.elena_balakhnina.bookdiary.domain.ImageCache
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -18,10 +20,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ViewElementVM @Inject constructor(
-    //позволяет сохранять и загружать какие-либо данные. Будет переживать пересоздание view модели
     savedStateHandle: SavedStateHandle,
     private val repository: BooksRepository,
     private val imageCache: ImageCache,
+    @ApplicationContext
+   private val context: Context
 ) : ViewModel() {
     private val bookId = savedStateHandle.get<Long>("book_id")
     private val plannedMode = savedStateHandle.get<Boolean>("planned_mode") ?: false
@@ -42,6 +45,7 @@ class ViewElementVM @Inject constructor(
         } else {
             Log.e("ViewElement", "bookId not set")
         }
+
     }
     fun uiFlow(): Flow<ViewElementData> = mutableState
         .filterNotNull()
@@ -66,4 +70,5 @@ class ViewElementVM @Inject constructor(
             navController.popBackStack()
         }
     }
+
 }

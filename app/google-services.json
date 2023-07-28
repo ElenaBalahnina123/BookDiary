@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "297755070705",
+    "project_id": "bookdiary-9ab0d",
+    "storage_bucket": "bookdiary-9ab0d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:297755070705:android:52839904154aab0fd99950",
+        "android_client_info": {
+          "package_name": "com.elena_balakhnina.bookdiary"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "297755070705-1a1l8p76hj208egqpfffiitbcc2utf09.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAd2MuOapj8E72mni-dAcQ6JUCPaPTiCZw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "297755070705-1a1l8p76hj208egqpfffiitbcc2utf09.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

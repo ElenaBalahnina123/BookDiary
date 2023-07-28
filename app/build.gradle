@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'dagger.hilt.android.plugin'
     id 'kotlin-kapt'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -47,10 +48,14 @@ android {
     }
     namespace 'com.elena_balakhnina.bookdiary'
 }
-def room_version = "2.5.1"
+def room_version = "2.5.2"
 def lifecycle_version = "2.6.1"
 dependencies {
     implementation 'androidx.camera:camera-lifecycle:1.2.3'
+
+    implementation platform('com.google.firebase:firebase-bom:32.1.1')
+
+    implementation 'com.google.firebase:firebase-firestore-ktx'
     def nav_version = "2.6.0"
 
     implementation "androidx.navigation:navigation-compose:$nav_version"
@@ -100,4 +105,6 @@ dependencies {
     implementation "androidx.hilt:hilt-navigation-compose:1.0.0"
     implementation "com.google.dagger:hilt-android:$hilt_version"
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
+
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 }

@@ -15,3 +15,10 @@ data class EditElementData(
     val plannedMode: Boolean,
     val isFavorite : Boolean
 )
+
+
+data class EditTextData(
+    val bookTitle: String,
+    val author: String,
+    val description: String,
+)

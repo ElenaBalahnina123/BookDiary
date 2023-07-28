@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "genres")
 data class GenreDBEntity(
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id") val id: Long,
+    @PrimaryKey(autoGenerate = false)
+    @ColumnInfo(name = "fb_id") val fbId: String,
     @ColumnInfo(name = "genre") val genre: String,
 )

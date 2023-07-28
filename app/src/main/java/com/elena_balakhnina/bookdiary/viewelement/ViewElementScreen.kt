@@ -1,13 +1,15 @@
 package com.elena_balakhnina.bookdiary.viewelement
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
@@ -27,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -35,12 +38,14 @@ import com.elena_balakhnina.bookdiary.R
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 
 
+@Preview
 @Composable
 fun ViewElementScreen(
     navController: NavController = rememberNavController(),
     onEditClick: () -> Unit = {},
     onDelete: () -> Unit = {},
-    viewElementData: ViewElementData,
+    onClickRead: ()-> Unit = {},
+    viewElementData: ViewElementData = ViewElementData(),
 ) {
     BookDiaryTheme {
         Scaffold(topBar = {
@@ -76,7 +81,7 @@ fun ViewElementScreen(
                         },
                         confirmButton = {
                             Button(
-                                onClick = {  openDialog.value = false}) {
+                                onClick = { openDialog.value = false }) {
                                 Text("Отмена")
                             }
                         },
@@ -94,83 +99,114 @@ fun ViewElementScreen(
             Column(
                 modifier = Modifier
                     .padding(it)
-                    .padding(12.dp)
+                    .padding(start = 12.dp, end = 12.dp, top = 16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .fillMaxSize()
             ) {
 
-                Box {
+                Text(
+                    text = viewElementData.bookTitle,
+                    fontSize = 22.sp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
 
-                    Text(
-                        text = viewElementData.bookTitle,
-                        fontSize = 22.sp,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
+                Text(
+                    text = viewElementData.author,
+                    color = Color.Blue,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
 
-                Box() {
-                    Text(
-                        text = viewElementData.author,
-                        color = Color.Blue,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-                }
                 Row() {
-                    Box() {
 
-                        viewElementData.image?.let { imageBitmap ->
-                            Image(
-                                bitmap = imageBitmap,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxWidth(0.45f)
-                                    .aspectRatio(0.65f),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
+          if(viewElementData.image != null) {
+              Image(
+                  bitmap = viewElementData.image,
+                  contentDescription = null,
+                  modifier = Modifier
+                      .fillMaxWidth(0.45f)
+                      .aspectRatio(0.65f),
+                  contentScale = ContentScale.Crop
+              )
+          } else {
+              Image(
+                  painter = painterResource(id = R.drawable.my_books), contentDescription = null,
+                  modifier = Modifier
+                      .fillMaxWidth(0.45f)
+                      .aspectRatio(0.65f),
+              )
+          }
 
                     Column() {
                         if (viewElementData.allowRate) {
                             Row(modifier = Modifier.padding(start = 48.dp)) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.star),
+                                    painter = painterResource(id = R.drawable.star_rate_white_24dp),
                                     contentDescription = null,
                                     modifier = Modifier
-                                        .width(50.dp)
+                                        .width(42.dp)
                                         .aspectRatio(0.7f)
                                 )
-                                Box {
-                                    Text(
-                                        text = viewElementData.rating.toString(),
-                                        fontSize = 46.sp
-                                    )
-                                }
+                                Text(
+                                    text = viewElementData.rating.toString(),
+                                    fontSize = 40.sp
+                                )
                             }
                         }
-                        Box() {
+                        Text(
+                            text = "Жанр: ${viewElementData.genre}",
+                            modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+                        )
+
+                        if (viewElementData.allowRate) {
+
                             Text(
-                                text = "Жанр: ${viewElementData.genre}",
-                                modifier = Modifier.padding(start = 18.dp, top = 18.dp)
+                                text = String.format(
+                                    "%1\$td.%1\$tm.%1\$ty", viewElementData.date
+                                ), modifier = Modifier.padding(start = 16.dp, top = 16.dp)
                             )
                         }
-                        if (viewElementData.allowRate) {
-                            Box() {
-                                Text(
-                                    text = String.format(
-                                        "%1\$td.%1\$tm.%1\$ty", viewElementData.date
-                                    ), modifier = Modifier.padding(start = 18.dp, top = 18.dp)
+                        val openDialog = remember { mutableStateOf(false) }
+
+                        if(!viewElementData.allowRate) {
+
+                            Button(onClick = { openDialog.value = true }, modifier = Modifier.padding(top = 16.dp, start = 16.dp)) {
+                                Text(text = "Прочитано")
+                            }
+
+                            if (openDialog.value) {
+                                AlertDialog(
+                                    onDismissRequest = {
+                                        openDialog.value = false
+                                    },
+                                    title = {
+                                        Text(text = "Добавить в прочитанное")
+                                    },
+                                    text = {
+                                        Text(text = "Добавить книгу в прочитанное?")
+                                    },
+                                    confirmButton = {
+                                        Button(
+                                            onClick = { openDialog.value = false }) {
+                                            Text("Отмена")
+                                        }
+                                    },
+                                    dismissButton = {
+                                        Button(
+                                            onClick = onClickRead
+                                        ) {
+                                            Text("Добавить")
+                                        }
+                                    }
                                 )
                             }
                         }
 
                     }
                 }
-                Box() {
-
-                    Text(
-                        text = viewElementData.description,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                }
+                Text(
+                    text = viewElementData.description,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 24.dp)
+                )
 
             }
         }

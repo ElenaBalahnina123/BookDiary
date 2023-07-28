@@ -129,6 +129,7 @@ class EditElementViewModel @Inject constructor(
                     isFavorite = state.isFavorite
                 )
             )
+
             navController.popBackStack()
         }
     }
