@@ -1,13 +1,12 @@
 package com.elena_balakhnina.bookdiary.editor
 
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.text.input.TextFieldValue
 
 data class EditElementData(
-    val bookTitle: TextFieldValue,
-    val author: TextFieldValue,
+    val bookTitle: String,
+    val author: String,
     val image: ImageBitmap?,
-    val description: TextFieldValue,
+    val description: String,
     val selectedGenreIndex: Int,
     val genres: List<String>,
     val rating: Int,
@@ -16,9 +15,3 @@ data class EditElementData(
     val isFavorite : Boolean
 )
 
-
-data class EditTextData(
-    val bookTitle: String,
-    val author: String,
-    val description: String,
-)

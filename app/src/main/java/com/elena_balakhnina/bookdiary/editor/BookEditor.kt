@@ -42,6 +42,9 @@ fun BookEditor(navController: NavController) {
         onRatingChanged = viewModel::onRatingSelected,
         onDateChanged = viewModel::onDateChanged,
         onPopBackStack = { navController.popBackStack() },
-        data = screenData
+        data = screenData,
+        bookTitleFlow = viewModel.bookTitleFlow(),
+        authorFlow = viewModel.authorFlow(),
+        descriptionFlow = viewModel.descriptionFlow()
     )
 }

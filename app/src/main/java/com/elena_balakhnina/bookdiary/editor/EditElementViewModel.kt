@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.launch
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -71,9 +70,9 @@ class EditElementViewModel @Inject constructor(
 
             mutableState.value = bookId?.let { booksRepository.getById(it) }?.let {
                 mutableState.value.copy(
-                    bookTitle = TextFieldValue(it.bookTitle),
-                    author = TextFieldValue(it.author),
-                    description = TextFieldValue(it.description.orEmpty()),
+                    bookTitle =it.bookTitle,
+                    author = it.author,
+                    description = it.description.orEmpty(),
                     date = it.date,
                     rating = it.rating,
                     image = it.image,
@@ -88,15 +87,20 @@ class EditElementViewModel @Inject constructor(
             }
         }
     }
+    fun bookTitleFlow() = mutableState.map { it.bookTitle }.distinctUntilChanged()
+
+    fun authorFlow() = mutableState.map { it.author }.distinctUntilChanged()
+
+    fun descriptionFlow() = mutableState.map { it.description }.distinctUntilChanged()
 
     fun saveClick(navController: NavController) {
         viewModelScope.launch {
             val state = mutableState.value
-            if (state.bookTitle.text.isEmpty()) {
+            if (state.bookTitle.isEmpty()) {
                 Toast.makeText(context, "Введите название книги", Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            if (state.author.text.isEmpty()) {
+            if (state.author.isEmpty()) {
                 Toast.makeText(context, "Введите автора", Toast.LENGTH_SHORT).show()
                 return@launch
             }
@@ -118,9 +122,9 @@ class EditElementViewModel @Inject constructor(
             booksRepository.save(
                 BookEntity(
                     id = bookId,
-                    bookTitle = state.bookTitle.text,
-                    author = state.author.text,
-                    description = state.description.text,
+                    bookTitle = state.bookTitle,
+                    author = state.author,
+                    description = state.description,
                     date = state.date,
                     rating = state.rating,
                     image = state.image,
@@ -151,35 +155,35 @@ class EditElementViewModel @Inject constructor(
         Log.d(TAG, "update uiFlow to $it")
     }.stateIn(
         viewModelScope, SharingStarted.Eagerly, EditElementData(
-            bookTitle = TextFieldValue(),
-            author = TextFieldValue(),
+            bookTitle = "",
+            author = "",
             image = null,
             isFavorite = false,
             plannedMode = false,
             genres = emptyList(),
-            description = TextFieldValue(),
+            description = "",
             rating = 0,
             date = 0L,
             selectedGenreIndex = -1
         )
     )
 
-    fun onTitleChange(newTitle: TextFieldValue) {
-        Log.d(TAG, "onTitleChange: ${newTitle.text}")
+    fun onTitleChange(newTitle: String) {
+        Log.d(TAG, "onTitleChange: $newTitle")
         mutableState.value = mutableState.value.copy(
             bookTitle = newTitle
         )
     }
 
-    fun onAuthorChange(newAuthor: TextFieldValue) {
-        Log.d(TAG, "onAuthorChange: ${newAuthor.text}")
+    fun onAuthorChange(newAuthor: String) {
+        Log.d(TAG, "onAuthorChange: $newAuthor")
         mutableState.value = mutableState.value.copy(
             author = newAuthor
         )
     }
 
-    fun onDescriptionChange(newDescription: TextFieldValue) {
-        Log.d(TAG, "onDescriptionChange: ${newDescription.text}")
+    fun onDescriptionChange(newDescription: String) {
+        Log.d(TAG, "onDescriptionChange: $newDescription")
         mutableState.value = mutableState.value.copy(
             description = newDescription
         )
