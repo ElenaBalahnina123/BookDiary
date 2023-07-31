@@ -27,6 +27,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,30 +36,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.elena_balakhnina.bookdiary.R
 import com.elena_balakhnina.bookdiary.compose.component.Calendar
 import com.elena_balakhnina.bookdiary.compose.component.DropdownComponent
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 
 @Composable
 fun EditElementScreen(
     data: EditElementData,
     onSaveClick: () -> Unit = {},
-    onTitleChange: (TextFieldValue) -> Unit = {},
-    onAuthorChange: (TextFieldValue) -> Unit = {},
+
+    onTitleChange: (String) -> Unit = {},
+    onAuthorChange: (String) -> Unit = {},
+    onDescriptionChange: (String) -> Unit = {},
+
     onClickGallery: () -> Unit = {},
     onClickCamera: () -> Unit = {},
-    onDescriptionChange: (TextFieldValue) -> Unit = {},
     onGenreChange: (Int) -> Unit = {},
     onRatingChanged: (Int) -> Unit = {},
     onDateChanged: (Long) -> Unit = {},
     onPopBackStack: () -> Unit = {},
 
-
+    bookTitleFlow: Flow<String> = emptyFlow(),
+    authorFlow: Flow<String> = emptyFlow(),
+    descriptionFlow: Flow<String> = emptyFlow(),
 
 ) {
     BookDiaryTheme {
@@ -92,29 +99,37 @@ fun EditElementScreen(
                     .padding(8.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
-                TextField(
-                    value = data.bookTitle,
-                    onValueChange = onTitleChange,
-                    label = {
-                        Text(text = "Название книги")
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.Transparent
-                    )
-                )
 
-                TextField(
-                    value = data.author,
-                    onValueChange = onAuthorChange,
-                    label = {
-                        Text(text = "Автор")
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.Transparent
+                Box {
+                    val title by bookTitleFlow.collectAsState(initial = "")
+
+                    TextField(
+                        value = title,
+                        onValueChange = onTitleChange,
+                        label = {
+                            Text(text = "Название книги")
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.textFieldColors(
+                            backgroundColor = Color.Transparent
+                        )
                     )
-                )
+                }
+                Box {
+                    val author by authorFlow.collectAsState(initial = "")
+
+                    TextField(
+                        value = author,
+                        onValueChange = onAuthorChange,
+                        label = {
+                            Text(text = "Автор")
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.textFieldColors(
+                            backgroundColor = Color.Transparent
+                        )
+                    )
+                }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -193,17 +208,21 @@ fun EditElementScreen(
                     )
                 }
 
-                TextField(
-                    value = data.description,
-                    onValueChange = onDescriptionChange,
-                    label = {
-                        Text(text = "Описание")
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.Transparent
+                Box() {
+                    val description by descriptionFlow.collectAsState(initial = "")
+
+                    TextField(
+                        value = description,
+                        onValueChange = onDescriptionChange,
+                        label = {
+                            Text(text = "Описание")
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.textFieldColors(
+                            backgroundColor = Color.Transparent
+                        )
                     )
-                )
+                }
             }
         }
     }

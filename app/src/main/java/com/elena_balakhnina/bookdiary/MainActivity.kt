@@ -6,18 +6,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -63,13 +67,19 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val isReady by viewModel.stateFlow.collectAsState()
                     if (isReady) {
-                        navigationContent()
+                       navigationContent()
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Icon(
-                                painterResource(id = R.drawable.my_books),
-                                contentDescription = null
-                            )
+                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    painterResource(id = R.drawable.my_books),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .width(48.dp)
+                                        .padding(8.dp)
+                                )
+                                Text(text = "Загрузка жанров. Пожалуйста, подождите...")
+                            }
                         }
                     }
                 }
@@ -209,3 +219,4 @@ private fun navigationContent() {
         }
     }
 }
+
