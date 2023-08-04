@@ -18,12 +18,9 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -135,7 +132,6 @@ private fun navigationContent() {
         ) {
             composable("books") {
                 val viewModel = hiltViewModel<BookListViewModel>()
-                val textState = remember { mutableStateOf(TextFieldValue("")) }
                 BookListScreen(
                     onAddClick = { navController.navigate("editor?allowRate=true") },
                     stateFlow = viewModel.booksFlow(),
@@ -145,7 +141,7 @@ private fun navigationContent() {
                             navController
                         )
                     },
-                    onToggleFavorite = { viewModel.onToggleFavorite(it) }
+                    onToggleFavorite = viewModel::onToggleFavorite //{ viewModel.onToggleFavorite(it) }
                 )
             }
             composable("favorite") {

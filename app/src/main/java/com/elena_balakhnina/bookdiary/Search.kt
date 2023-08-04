@@ -1,11 +1,8 @@
 package com.elena_balakhnina.bookdiary
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
@@ -24,40 +21,38 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.sp
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 
-@Preview
-@Composable
-fun SearchAppbarPreview() {
-    var text by remember {
-        mutableStateOf("")
-    }
-    BookDiaryTheme {
-        Scaffold(
-            topBar = {
-                SearchAppbar(
-                    searchText = text,
-                    onSearchChanged = { text = it },
-                    onCloseClicked = { text = "" })
-            }
-        ) {
-            Box(modifier = Modifier.padding(it))
-        }
-    }
-}
+//@Preview
+//@Composable
+//fun SearchAppbarPreview() {
+//    var text by remember {
+//        mutableStateOf("")
+//    }
+//    BookDiaryTheme {
+//        Scaffold(
+//            topBar = {
+//                SearchAppbar(
+//                    searchText = text,
+//                    onSearchChanged = { text = it }
+//                )
+//            }
+//        ) {
+//            Box(modifier = Modifier.padding(it))
+//        }
+//    }
+//}
 
 @Composable
 fun SearchAppbar(
-    searchText: String,
-    onSearchChanged: (String) -> Unit,
+    searchText: TextFieldValue,
+    onSearchChanged: (TextFieldValue) -> Unit,
     title: String = "Book diary",
-    onCloseClicked: (String) -> Unit,
 ) {
 
     BookDiaryTheme {
-
         var isNowSearching by remember { mutableStateOf(false) }
         if (!isNowSearching) {
             TopAppBar(
@@ -95,7 +90,7 @@ fun SearchAppbar(
                             }
                         },
                         trailingIcon = {
-                            IconButton(onClick = { onCloseClicked(searchText) }) {
+                            IconButton(onClick = { onSearchChanged(TextFieldValue()) }) {
                                 Icon(Icons.Default.Clear, contentDescription = null)
                             }
                         }

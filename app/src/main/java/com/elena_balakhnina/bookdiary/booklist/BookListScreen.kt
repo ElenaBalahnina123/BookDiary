@@ -1,6 +1,5 @@
 package com.elena_balakhnina.bookdiary.booklist
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,10 +13,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,29 +26,36 @@ import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
+data class BookListScreenState(
+    val books: List<BookListItemData>,
+    val query: TextFieldValue,
+)
+
 @Preview
 @Composable
 fun BookListScreen(
     onAddClick: () -> Unit = {},
-    stateFlow: Flow<List<BookListItemData>> = emptyFlow(),
+    stateFlow: Flow<BookListScreenState> = emptyFlow(),
     onBookClick: (Int) -> Unit = {},
     onToggleFavorite: (Int) -> Unit = {},
-
-    ) {
+    onQueryChanged: (TextFieldValue) -> Unit = {},
+) {
 
     BookDiaryTheme {
-        var text by remember {
-            mutableStateOf("")
-        }
-        Scaffold(
+        val state by stateFlow.collectAsState(
+            initial = BookListScreenState(
+                emptyList(),
+                TextFieldValue()
+            )
+        )
 
+        Scaffold(
             topBar = {
                 SearchAppbar(
-                    searchText = text,
-                    onSearchChanged = { text = it },
-                    onCloseClicked = { text = "" })
+                    searchText = state.query,
+                    onSearchChanged = onQueryChanged
+                )
             },
-
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = onAddClick,
@@ -59,27 +63,26 @@ fun BookListScreen(
                     Icon(imageVector = Icons.Default.Add, contentDescription = null)
                 }
             },
-
             ) { paddingValues ->
 
-            Column {
-                val listBook by stateFlow.collectAsState(emptyList())
-
-                if (listBook.isEmpty()) {
-                    Text(
-                        text = "Нет прочитанных книг",
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    )
-                }
-                LazyColumn(
-                    modifier = Modifier.padding(paddingValues),
-                ) {
-                if (text.isEmpty()) {
-                    itemsIndexed(listBook) { index, item ->
+            LazyColumn(
+                modifier = Modifier.padding(paddingValues),
+            ) {
+                if (state.books.isEmpty()) {
+                    item {
+                        Text(
+                            text = "Нет прочитанных книг",
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                        )
+                    }
+                } else {
+                    itemsIndexed(
+                        state.books,
+                    ) { index, item ->
                         BookListItemScreen(
                             itemData = item,
                             onClick = { onBookClick(index) },
@@ -87,9 +90,6 @@ fun BookListScreen(
                             onFavoriteToggle = { onToggleFavorite(index) }
                         )
                     }
-                } else {
-
-                }
                 }
             }
         }
