@@ -135,7 +135,9 @@ class EditElementViewModel @Inject constructor(
             )
 
             navController.popBackStack()
+            
         }
+
     }
 
     val uiFlow = mutableState.map { viewModelState ->

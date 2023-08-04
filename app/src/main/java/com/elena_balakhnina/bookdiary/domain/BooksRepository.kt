@@ -45,6 +45,7 @@ interface BooksRepository {
     suspend fun getById(bookId: Long): BookEntity?
 
     suspend fun getAll(): List<BookEntity>
+
     suspend fun delete(bookId: Long)
 
     fun plannedBooksFlow(): Flow<List<BookEntity>>
@@ -209,6 +210,7 @@ class BooksRepositoryImpl @Inject constructor(
     override suspend fun getAll(): List<BookEntity> {
         return booksDao.getAllBooks().map { it.toBookEntity() }
     }
+
 
     override suspend fun delete(bookId: Long) {
         booksDao.delete(bookId)

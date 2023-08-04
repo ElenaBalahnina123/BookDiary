@@ -1,9 +1,11 @@
 package com.elena_balakhnina.bookdiary.viewelement
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -44,7 +47,7 @@ fun ViewElementScreen(
     navController: NavController = rememberNavController(),
     onEditClick: () -> Unit = {},
     onDelete: () -> Unit = {},
-    onClickRead: ()-> Unit = {},
+    onClickRead: () -> Unit = {},
     viewElementData: ViewElementData = ViewElementData(),
 ) {
     BookDiaryTheme {
@@ -99,7 +102,7 @@ fun ViewElementScreen(
             Column(
                 modifier = Modifier
                     .padding(it)
-                    .padding(start = 12.dp, end = 12.dp, top = 16.dp)
+                    .padding(start = 12.dp, end = 12.dp)
                     .verticalScroll(rememberScrollState())
                     .fillMaxSize()
             ) {
@@ -118,23 +121,24 @@ fun ViewElementScreen(
 
                 Row() {
 
-          if(viewElementData.image != null) {
-              Image(
-                  bitmap = viewElementData.image,
-                  contentDescription = null,
-                  modifier = Modifier
-                      .fillMaxWidth(0.45f)
-                      .aspectRatio(0.65f),
-                  contentScale = ContentScale.Crop
-              )
-          } else {
-              Image(
-                  painter = painterResource(id = R.drawable.my_books), contentDescription = null,
-                  modifier = Modifier
-                      .fillMaxWidth(0.45f)
-                      .aspectRatio(0.65f),
-              )
-          }
+                    if (viewElementData.image != null) {
+                        Image(
+                            bitmap = viewElementData.image,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth(0.45f)
+                                .aspectRatio(0.65f),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.my_books),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth(0.45f)
+                                .aspectRatio(0.65f),
+                        )
+                    }
 
                     Column() {
                         if (viewElementData.allowRate) {
@@ -165,50 +169,67 @@ fun ViewElementScreen(
                                 ), modifier = Modifier.padding(start = 16.dp, top = 16.dp)
                             )
                         }
-                        val openDialog = remember { mutableStateOf(false) }
+                    }
 
-                        if(!viewElementData.allowRate) {
+                }
 
-                            Button(onClick = { openDialog.value = true }, modifier = Modifier.padding(top = 16.dp, start = 16.dp)) {
-                                Text(text = "Прочитано")
-                            }
 
-                            if (openDialog.value) {
-                                AlertDialog(
-                                    onDismissRequest = {
-                                        openDialog.value = false
-                                    },
-                                    title = {
-                                        Text(text = "Добавить в прочитанное")
-                                    },
-                                    text = {
-                                        Text(text = "Добавить книгу в прочитанное?")
-                                    },
-                                    confirmButton = {
-                                        Button(
-                                            onClick = { openDialog.value = false }) {
-                                            Text("Отмена")
-                                        }
-                                    },
-                                    dismissButton = {
-                                        Button(
-                                            onClick = onClickRead
-                                        ) {
-                                            Text("Добавить")
-                                        }
-                                    }
-                                )
-                            }
+                    Text(
+                        text = viewElementData.description,
+                        modifier = Modifier
+                            .padding(top = 16.dp, bottom = 16.dp)
+
+                    )
+
+
+
+                val openDialog = remember { mutableStateOf(false) }
+
+                if (!viewElementData.allowRate) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            onClick = { openDialog.value = true },
+                        ) {
+                            Text(text = "Прочитано")
                         }
+                    }
 
+                    if (openDialog.value) {
+                        AlertDialog(
+                            onDismissRequest = {
+                                openDialog.value = false
+                            },
+                            title = {
+                                Text(text = "Добавить в прочитанное")
+                            },
+                            text = {
+                                Text(text = "Добавить книгу в прочитанное?")
+                            },
+                            confirmButton = {
+                                Button(
+                                    onClick = { openDialog.value = false }) {
+                                    Text("Отмена")
+                                }
+                            },
+                            dismissButton = {
+                                Button(
+                                    onClick = onClickRead
+                                ) {
+                                    Text("Добавить")
+                                }
+                            }
+                        )
                     }
                 }
-                Text(
-                    text = viewElementData.description,
-                    modifier = Modifier.padding(top = 16.dp, bottom = 24.dp)
-                )
 
             }
+
         }
     }
 }

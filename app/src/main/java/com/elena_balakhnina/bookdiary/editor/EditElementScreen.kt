@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
-import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
@@ -25,7 +24,6 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -85,12 +83,8 @@ fun EditElementScreen(
                         }
                     },
                 )
-            },
-            floatingActionButton = {
-                FloatingActionButton(onClick = onSaveClick) {
-                    Icon(imageVector = Icons.Default.Check, contentDescription = null)
-                }
-            }) { scaffoldPaddings ->
+            }
+           ) { scaffoldPaddings ->
 
             Column(
                 modifier = Modifier
@@ -189,8 +183,8 @@ fun EditElementScreen(
                     DropdownComponent(
                         options = ratings,
                         hint = "Рейтинг",
-                        selectedOption = data.rating,
-                        onSelectedOptionChange = { onRatingChanged(it + 1) }
+                        selectedOption = data.rating-1,
+                        onSelectedOptionChange = { onRatingChanged(it+1) }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -207,7 +201,6 @@ fun EditElementScreen(
                         onDateChanged = onDateChanged,
                     )
                 }
-
                 Box() {
                     val description by descriptionFlow.collectAsState(initial = "")
 
@@ -217,16 +210,24 @@ fun EditElementScreen(
                         label = {
                             Text(text = "Описание")
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth(),
                         colors = TextFieldDefaults.textFieldColors(
                             backgroundColor = Color.Transparent
-                        )
+                        ),
+                        maxLines = 5
                     )
+                }
+                Button(onClick = onSaveClick, modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxSize()) {
+                    Text(text = "Сохранить")
                 }
             }
         }
     }
 }
+
 
 
 
