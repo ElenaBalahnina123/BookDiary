@@ -11,6 +11,6 @@ data class BookItemData(
     val rating: Int?,
     val genre: String,
     val image: ImageBitmap?,
-    val plannedMode : Boolean,
-    val isFavorite : Boolean
+    val plannedMode: Boolean,
+    val isFavorite: Boolean
 )

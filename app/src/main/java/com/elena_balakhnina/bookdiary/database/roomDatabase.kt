@@ -29,11 +29,13 @@ interface GenreDao {
 }
 
 
-
 @Dao
 interface BooksDao {
     @Query("SELECT * FROM books")
     fun getAllBooksFlow(): Flow<List<BookDbEntity>>
+
+    @Query("SELECT * FROM books WHERE rating > 0 AND (bookTitle LIKE '%' || :theQuery || '%' OR author LIKE '%' || :theQuery || '%')")
+    fun getBooksByQuery(theQuery: String): Flow<List<BookDbEntity>>
 
     @Query("SELECT * FROM books WHERE id = :bookId LIMIT 1")
     suspend fun getById(bookId: Long): BookDbEntity?

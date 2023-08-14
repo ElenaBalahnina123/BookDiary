@@ -67,10 +67,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val isReady by viewModel.stateFlow.collectAsState()
                     if (isReady) {
-                       navigationContent()
+                        navigationContent()
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Icon(
                                     painterResource(id = R.drawable.my_books),
                                     contentDescription = null,
@@ -141,7 +144,8 @@ private fun navigationContent() {
                             navController
                         )
                     },
-                    onToggleFavorite = { viewModel.onToggleFavorite(it) }
+                    onToggleFavorite = viewModel::onToggleFavorite,
+                    onQueryChanged = viewModel::onQueryChanged
                 )
             }
             composable("favorite") {
@@ -157,6 +161,7 @@ private fun navigationContent() {
                     onToggleFavorite = { viewModel.onToggleFavorite(it) }
                 )
             }
+
             composable("planned") {
                 val viewModel = hiltViewModel<BookListViewModelPlanned>()
                 PlannedBooks(
@@ -182,7 +187,7 @@ private fun navigationContent() {
             ) {
                 val bookId = it.arguments?.getLong("book_id") ?: 0L
                 val plannedMode = it.arguments?.getBoolean("planned_mode") ?: false
-                Log.d("ViewElement", "$plannedMode")
+                Log.d("ViewElement", "bookId: $bookId, planned: $plannedMode")
 
                 val viewModel = hiltViewModel<ViewElementVM>()
                 val state by viewModel.uiFlow().collectAsState(ViewElementData())
@@ -192,12 +197,13 @@ private fun navigationContent() {
                     onEditClick = { navController.navigate("editor?bookId=${bookId}&allowRate=${!plannedMode}") },
                     onDelete = { viewModel.onDelete(navController) },
                     viewElementData = state,
-                    onClickRead = { navController.navigate(
-                        route = "editor?bookId=${bookId}&allowRate=${plannedMode}",
-                        navOptions = navOptions {
-                            popUpTo("planned")
-                        }
-                    )
+                    onClickRead = {
+                        navController.navigate(
+                            route = "editor?bookId=${bookId}&allowRate=${plannedMode}",
+                            navOptions = navOptions {
+                                popUpTo("planned")
+                            }
+                        )
                     }
                 )
             }

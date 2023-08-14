@@ -54,11 +54,11 @@ class BookItemDataPreviewProvider : PreviewParameterProvider<BookListItemData> {
 
 @Preview(device = Devices.NEXUS_7)
 @Composable
-fun BookListItemScreen(
+fun BookListItem(
     @PreviewParameter(BookItemDataPreviewProvider::class)
     itemData: BookListItemData,
     onClick: () -> Unit = {},
-    onFavoriteToggle: ()->Unit = {},
+    onFavoriteToggle: () -> Unit = {},
     showRatingAndData: Boolean = true
 ) {
 
@@ -132,8 +132,7 @@ fun BookListItemScreen(
                         color = Color(0x77000000),
                         shape = CircleShape
                     )
-                    .padding(4.dp)
-                ,
+                    .padding(4.dp),
             ) {
                 Icon(
                     tint = Color(0xFFFF001E),

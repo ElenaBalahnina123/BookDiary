@@ -12,6 +12,6 @@ data class EditElementData(
     val rating: Int,
     val date: Long,
     val plannedMode: Boolean,
-    val isFavorite : Boolean
+    val isFavorite: Boolean
 )
 
