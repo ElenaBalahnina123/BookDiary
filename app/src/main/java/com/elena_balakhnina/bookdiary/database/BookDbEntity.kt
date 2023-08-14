@@ -17,6 +17,6 @@ data class BookDbEntity(
     @ColumnInfo(name = "rating") val rating: Int,
     @ColumnInfo(name = "genre") val genreId: String,
     @ColumnInfo(name = "image") val image: String?,
-    @ColumnInfo(name = "showRateAndDate") val showRateAndDate : Boolean,
-    @ColumnInfo(name = "isFavorite") val isFavorite : Boolean
+    @ColumnInfo(name = "showRateAndDate") val showRateAndDate: Boolean,
+    @ColumnInfo(name = "isFavorite") val isFavorite: Boolean
 )

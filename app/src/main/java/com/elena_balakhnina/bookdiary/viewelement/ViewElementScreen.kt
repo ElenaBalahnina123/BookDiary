@@ -174,13 +174,12 @@ fun ViewElementScreen(
                 }
 
 
-                    Text(
-                        text = viewElementData.description,
-                        modifier = Modifier
-                            .padding(top = 16.dp, bottom = 16.dp)
+                Text(
+                    text = viewElementData.description,
+                    modifier = Modifier
+                        .padding(top = 16.dp, bottom = 16.dp)
 
-                    )
-
+                )
 
 
                 val openDialog = remember { mutableStateOf(false) }

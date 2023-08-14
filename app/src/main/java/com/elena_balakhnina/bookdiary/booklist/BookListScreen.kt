@@ -20,8 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.elena_balakhnina.bookdiary.SearchAppbar
+import com.elena_balakhnina.bookdiary.booklistitem.BookListItem
 import com.elena_balakhnina.bookdiary.booklistitem.BookListItemData
-import com.elena_balakhnina.bookdiary.booklistitem.BookListItemScreen
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -34,8 +34,8 @@ data class BookListScreenState(
 @Preview
 @Composable
 fun BookListScreen(
-    onAddClick: () -> Unit = {},
     stateFlow: Flow<BookListScreenState> = emptyFlow(),
+    onAddClick: () -> Unit = {},
     onBookClick: (Int) -> Unit = {},
     onToggleFavorite: (Int) -> Unit = {},
     onQueryChanged: (TextFieldValue) -> Unit = {},
@@ -63,7 +63,7 @@ fun BookListScreen(
                     Icon(imageVector = Icons.Default.Add, contentDescription = null)
                 }
             },
-            ) { paddingValues ->
+        ) { paddingValues ->
 
             LazyColumn(
                 modifier = Modifier.padding(paddingValues),
@@ -83,7 +83,7 @@ fun BookListScreen(
                     itemsIndexed(
                         state.books,
                     ) { index, item ->
-                        BookListItemScreen(
+                        BookListItem(
                             itemData = item,
                             onClick = { onBookClick(index) },
                             showRatingAndData = true,

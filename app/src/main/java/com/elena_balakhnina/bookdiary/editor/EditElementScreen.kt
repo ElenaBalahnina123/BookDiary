@@ -64,7 +64,7 @@ fun EditElementScreen(
     authorFlow: Flow<String> = emptyFlow(),
     descriptionFlow: Flow<String> = emptyFlow(),
 
-) {
+    ) {
     BookDiaryTheme {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -84,7 +84,7 @@ fun EditElementScreen(
                     },
                 )
             }
-           ) { scaffoldPaddings ->
+        ) { scaffoldPaddings ->
 
             Column(
                 modifier = Modifier
@@ -183,8 +183,8 @@ fun EditElementScreen(
                     DropdownComponent(
                         options = ratings,
                         hint = "Рейтинг",
-                        selectedOption = data.rating-1,
-                        onSelectedOptionChange = { onRatingChanged(it+1) }
+                        selectedOption = data.rating - 1,
+                        onSelectedOptionChange = { onRatingChanged(it + 1) }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -218,9 +218,11 @@ fun EditElementScreen(
                         maxLines = 5
                     )
                 }
-                Button(onClick = onSaveClick, modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxSize()) {
+                Button(
+                    onClick = onSaveClick, modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxSize()
+                ) {
                     Text(text = "Сохранить")
                 }
             }

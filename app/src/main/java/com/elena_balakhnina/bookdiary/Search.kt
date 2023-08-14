@@ -81,8 +81,8 @@ fun SearchAppbar(
                             trailingIconColor = Color.White,
                             backgroundColor = Color.Transparent,
 
-                        ),
-                        label = { Text(text = "Поиск по автору и названию", color = Color.White)},
+                            ),
+                        label = { Text(text = "Поиск по автору и названию", color = Color.White) },
 
                         leadingIcon = {
                             IconButton(onClick = { isNowSearching = false }) {

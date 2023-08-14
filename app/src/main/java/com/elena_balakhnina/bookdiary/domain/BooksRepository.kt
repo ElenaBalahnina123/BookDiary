@@ -9,11 +9,13 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import javax.inject.Inject
 
@@ -57,12 +59,41 @@ interface BooksRepository {
     fun bookEntityFlow(bookId: Long): Flow<BookEntity>
 
     suspend fun setFavorite(bookId: Long, isFavorite: Boolean)
+
+    fun getRatedBooksWithQuery(query: String): Flow<List<BookEntity>>
 }
 
 class BooksRepositoryImpl @Inject constructor(
     private val booksDao: BooksDao,
     private val genresDao: GenreDao,
 ) : BooksRepository {
+
+    private val job = Job()
+    private val scope = CoroutineScope(Dispatchers.IO + job)
+
+    private val genresTask = scope.async {
+        genresDao.getAllGenres().associateBy { it.fbId }
+    }
+
+    override fun getRatedBooksWithQuery(query: String): Flow<List<BookEntity>> {
+        return booksDao.getBooksByQuery(query)
+            .mapToBookEntity()
+    }
+
+    override fun plannedBooksFlow(): Flow<List<BookEntity>> {
+        return booksDao.getPlannedBooks()
+            .mapToBookEntity()
+    }
+
+    override fun favoriteBooksFlow(): Flow<List<BookEntity>> {
+        return booksDao.getFavoriteBooks()
+            .mapToBookEntity()
+    }
+
+    override fun ratedBooksFlow(): Flow<List<BookEntity>> {
+        return booksDao.getRatedBooks()
+            .mapToBookEntity()
+    }
 
     override suspend fun setFavorite(bookId: Long, isFavorite: Boolean) {
         booksDao.getById(bookId)?.copy(
@@ -73,84 +104,37 @@ class BooksRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun plannedBooksFlow(): Flow<List<BookEntity>> {
+    override fun bookEntityFlow(bookId: Long): Flow<BookEntity> {
         return flow {
-            val genres: Map<String, GenreDBEntity> =
-                genresDao.getAllGenres().associateBy { it.fbId }
-            booksDao.getPlannedBooks().map { bookDbEntities ->
-                bookDbEntities.map {
-                    BookEntity(
-                        id = it.id,
-                        bookTitle = it.bookTitle,
-                        author = it.author,
-                        description = it.description,
-                        date = it.date,
-                        rating = it.rating,
-                        image = it.image,
-                        genre = genres[it.genreId]!!,
-                        plannedMode = it.showRateAndDate,
-                        isFavorite = it.isFavorite
-                    )
-                }
+            val genres = genresTask.await()
+            booksDao.subscribeById(bookId).mapNotNull {
+                it?.toBookEntity(genres)
             }.collect {
                 emit(it)
             }
-        }.flowOn(Dispatchers.IO)
+        }
     }
 
-    override fun favoriteBooksFlow(): Flow<List<BookEntity>> {
-        return flow {
-            val genres: Map<String, GenreDBEntity> =
-                genresDao.getAllGenres().associateBy { it.fbId }
-            booksDao.getFavoriteBooks().map {
-                it.map {
-                    BookEntity(
-                        id = it.id,
-                        bookTitle = it.bookTitle,
-                        author = it.author,
-                        description = it.description,
-                        date = it.date,
-                        rating = it.rating,
-                        image = it.image,
-                        genre = genres[it.genreId]!!,
-                        plannedMode = it.showRateAndDate,
-                        isFavorite = it.isFavorite
-                    )
-                }
-            }.collect {
-                emit(it)
-            }
-        }.flowOn(Dispatchers.IO)
+    override suspend fun save(book: BookEntity) {
+        val dbBook = book.toDbEntity()
+
+        if (book.id != null && book.id > 0) {
+            booksDao.updateBook(dbBook)
+        } else {
+            booksDao.insertBook(dbBook)
+        }
     }
 
-    override fun ratedBooksFlow(): Flow<List<BookEntity>> {
-        return flow {
-            val genres: Map<String, GenreDBEntity> =
-                genresDao.getAllGenres().associateBy { it.fbId }
-            booksDao.getRatedBooks().map { bookDbEntities ->
-                bookDbEntities.map {
+    override suspend fun getById(bookId: Long): BookEntity? {
+        return booksDao.getById(bookId)?.toBookEntity(genresTask.await())
+    }
 
-                    val genre = requireNotNull(genres[it.genreId]) {
-                        "genre with id ${it.genreId} not found! (total genres count: ${genres.size})"
-                    }
+    override suspend fun getAll(): List<BookEntity> {
+        return mapToBookEntity(booksDao.getAllBooks())
+    }
 
-                    BookEntity(
-                        id = it.id,
-                        bookTitle = it.bookTitle,
-                        author = it.author,
-                        description = it.description,
-                        date = it.date,
-                        rating = it.rating,
-                        image = it.image,
-                        genre = genre,
-                        plannedMode = it.showRateAndDate,
-                        isFavorite = it.isFavorite
-                    )
-                }
-            }.collect {
-                emit(it)
-            }
-        }.flowOn(Dispatchers.IO)
+    override suspend fun delete(bookId: Long) {
+        booksDao.delete(bookId)
     }
 
     private fun BookEntity.toDbEntity(): BookDbEntity {
@@ -168,7 +152,16 @@ class BooksRepositoryImpl @Inject constructor(
         )
     }
 
-    private suspend fun BookDbEntity.toBookEntity(): BookEntity {
+    private suspend fun mapToBookEntity(
+        list: List<BookDbEntity>,
+    ): List<BookEntity> {
+        val genres = genresTask.await()
+        return list.map { it.toBookEntity(genres) }
+    }
+
+    private fun BookDbEntity.toBookEntity(
+        genres: Map<String, GenreDBEntity>
+    ): BookEntity {
         return BookEntity(
             id = id,
             bookTitle = bookTitle,
@@ -177,7 +170,7 @@ class BooksRepositoryImpl @Inject constructor(
             date = date,
             rating = rating,
             image = image,
-            genre = genresDao.getByIdGenre(genreId)?.toGenreEntity()!!,
+            genre = genres[genreId]?.toGenreEntity()!!,
             plannedMode = showRateAndDate,
             isFavorite = isFavorite
         )
@@ -187,32 +180,13 @@ class BooksRepositoryImpl @Inject constructor(
         return this
     }
 
-    override fun bookEntityFlow(bookId: Long): Flow<BookEntity> {
-        return booksDao.subscribeById(bookId).mapNotNull {
-            it?.toBookEntity()
-        }
-    }
-
-    override suspend fun save(book: BookEntity) {
-        val dbBook = book.toDbEntity()
-
-        if (book.id != null && book.id > 0) {
-            booksDao.updateBook(dbBook)
-        } else {
-            booksDao.insertBook(dbBook)
-        }
-    }
-
-    override suspend fun getById(bookId: Long): BookEntity? {
-        return booksDao.getById(bookId)?.toBookEntity()
-    }
-
-    override suspend fun getAll(): List<BookEntity> {
-        return booksDao.getAllBooks().map { it.toBookEntity() }
-    }
-
-
-    override suspend fun delete(bookId: Long) {
-        booksDao.delete(bookId)
+    private fun Flow<List<BookDbEntity>>.mapToBookEntity(): Flow<List<BookEntity>> {
+        return flow {
+            val genres = genresTask.await()
+            collect {
+                val mapped = it.map { it.toBookEntity(genres) }
+                emit(mapped)
+            }
+        }.flowOn(Dispatchers.IO)
     }
 }

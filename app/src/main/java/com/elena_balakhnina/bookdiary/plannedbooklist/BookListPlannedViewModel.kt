@@ -32,25 +32,25 @@ class BookListViewModelPlanned @Inject constructor(
     private val mutableStateFlow = MutableStateFlow(BookListVmState())
 
     init {
-            viewModelScope.launch {
-                Log.d("OLOLO", rateMode.toString())
-                booksRepository.plannedBooksFlow().collect { bookEntities ->
-                    mutableStateFlow.value = mutableStateFlow.value.copy(
-                        books = bookEntities.map {
-                            BookItemData(
-                                bookTitle = it.bookTitle,
-                                author = it.author,
-                                description = it.description.orEmpty(),
-                                date = it.date,
-                                rating = it.rating,
-                                genre = it.genre.genre,
-                                image = cache.getBitmapFromCache(it.image),
-                                bookId = requireNotNull(it.id),
-                                plannedMode = rateMode,
-                                isFavorite = isFavorite
-                            )
-                        }
-                    )
+        viewModelScope.launch {
+            Log.d("OLOLO", rateMode.toString())
+            booksRepository.plannedBooksFlow().collect { bookEntities ->
+                mutableStateFlow.value = mutableStateFlow.value.copy(
+                    books = bookEntities.map {
+                        BookItemData(
+                            bookTitle = it.bookTitle,
+                            author = it.author,
+                            description = it.description.orEmpty(),
+                            date = it.date,
+                            rating = it.rating,
+                            genre = it.genre.genre,
+                            image = cache.getBitmapFromCache(it.image),
+                            bookId = requireNotNull(it.id),
+                            plannedMode = rateMode,
+                            isFavorite = isFavorite
+                        )
+                    }
+                )
 
 
             }

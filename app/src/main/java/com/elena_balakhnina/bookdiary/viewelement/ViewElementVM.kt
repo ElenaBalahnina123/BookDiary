@@ -1,6 +1,7 @@
 package com.elena_balakhnina.bookdiary.viewelement
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,7 +22,7 @@ class ViewElementVM @Inject constructor(
     private val repository: BooksRepository,
     private val imageCache: ImageCache,
     @ApplicationContext
-   private val context: Context
+    private val context: Context
 ) : ViewModel() {
     private val bookId = savedStateHandle.get<Long>("book_id")
     private val plannedMode = savedStateHandle.get<Boolean>("planned_mode") ?: false
@@ -46,18 +48,21 @@ class ViewElementVM @Inject constructor(
 
     fun uiFlow(): Flow<ViewElementData> =
         repository.bookEntityFlow(bookId ?: -1)
-        .map {
-            ViewElementData(
-                bookTitle = it.bookTitle,
-                author = it.author,
-                description = it.description.orEmpty(),
-                date = it.date,
-                rating = it.rating,
-                genre = it.genre.genre,
-                image = imageCache.getBitmapFromCache(it.image),
-                allowRate = !plannedMode,
-            )
-        }
+            .onEach {
+                Log.d("BookEntity", it.toString())
+            }
+            .map {
+                ViewElementData(
+                    bookTitle = it.bookTitle,
+                    author = it.author,
+                    description = it.description.orEmpty(),
+                    date = it.date,
+                    rating = it.rating,
+                    genre = it.genre.genre,
+                    image = imageCache.getBitmapFromCache(it.image),
+                    allowRate = !plannedMode,
+                )
+            }
 
     fun onDelete(navController: NavController) {
         viewModelScope.launch {

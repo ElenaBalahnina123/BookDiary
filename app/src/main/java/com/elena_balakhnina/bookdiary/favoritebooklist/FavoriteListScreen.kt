@@ -16,8 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.elena_balakhnina.bookdiary.booklistitem.BookListItem
 import com.elena_balakhnina.bookdiary.booklistitem.BookListItemData
-import com.elena_balakhnina.bookdiary.booklistitem.BookListItemScreen
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -42,14 +42,21 @@ fun FavoriteListScreen(
 
             val listBook by stateFlow.collectAsState(emptyList())
 
-            if(listBook.isEmpty()) {
-                Text(text = "Нет избранных книг", fontSize = 20.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxSize().padding(16.dp))
+            if (listBook.isEmpty()) {
+                Text(
+                    text = "Нет избранных книг",
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                )
             }
             LazyColumn(
                 modifier = Modifier.padding(paddingValues),
             ) {
                 itemsIndexed(listBook) { index, item ->
-                    BookListItemScreen(
+                    BookListItem(
                         itemData = item,
                         onClick = { onBookClick(index) },
                         showRatingAndData = true,

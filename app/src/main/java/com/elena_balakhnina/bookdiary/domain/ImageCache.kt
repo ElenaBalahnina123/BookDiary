@@ -31,7 +31,6 @@ abstract class ImageCacheModule {
 }
 
 
-
 interface ImageCache {
 
     suspend fun saveImageFromUri(uri: Uri): String?
@@ -51,7 +50,7 @@ class ImageCacheImpl @Inject constructor(
     private val context: Context
 ) : ImageCache {
 
-    private val inMemoryCache = LruCache<String,Bitmap>(100)
+    private val inMemoryCache = LruCache<String, Bitmap>(100)
 
     override suspend fun saveImageFromUri(uri: Uri): String? {
         return Contexts.getApplication(context).contentResolver.openInputStream(uri)?.use {
@@ -65,9 +64,9 @@ class ImageCacheImpl @Inject constructor(
             val file = File(context.cacheDir, fileName)
             if (!file.createNewFile()) throw IOException("unable to create file")
             file.outputStream().use { fileOutputStream ->
-                bitmap.compress(Bitmap.CompressFormat.PNG,100, fileOutputStream)
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
             }
-            inMemoryCache.put(fileName,bitmap)
+            inMemoryCache.put(fileName, bitmap)
             fileName
         }
 
@@ -89,14 +88,14 @@ class ImageCacheImpl @Inject constructor(
             if (uuid.isNullOrBlank()) return@withContext null
 
             val cached = inMemoryCache.get(uuid)
-            if(cached != null) return@withContext cached
+            if (cached != null) return@withContext cached
 
             val file = File(context.cacheDir, uuid)
 
             if (file.exists()) {
                 file.inputStream().use {
                     BitmapFactory.decodeStream(it)?.also {
-                        inMemoryCache.put(uuid,it)
+                        inMemoryCache.put(uuid, it)
                     }
                 }
             } else null
@@ -104,7 +103,7 @@ class ImageCacheImpl @Inject constructor(
 
     override suspend fun deleteImage(uuid: String) {
         val file = File(context.cacheDir, uuid)
-        if(file.exists()) {
+        if (file.exists()) {
             inMemoryCache.remove(uuid)
             file.delete()
         }

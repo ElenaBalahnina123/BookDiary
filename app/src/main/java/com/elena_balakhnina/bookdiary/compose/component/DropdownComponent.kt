@@ -72,7 +72,7 @@ fun DropdownComponent(
             modifier = Modifier.padding(end = 16.dp)
         ) {
             val animatedAngle by animateFloatAsState(
-                if(expanded) 180f else 0f
+                if (expanded) 180f else 0f
             )
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,

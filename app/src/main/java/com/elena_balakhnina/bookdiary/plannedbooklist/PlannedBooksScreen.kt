@@ -18,8 +18,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.elena_balakhnina.bookdiary.booklistitem.BookListItem
 import com.elena_balakhnina.bookdiary.booklistitem.BookListItemData
-import com.elena_balakhnina.bookdiary.booklistitem.BookListItemScreen
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -49,8 +49,15 @@ fun PlannedBooks(
 
         val state = stateFlow.collectAsState(emptyList())
 
-        if(state.value.isEmpty()) {
-            Text(text = "Нет запланированных книг", fontSize = 20.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxSize().padding(16.dp))
+        if (state.value.isEmpty()) {
+            Text(
+                text = "Нет запланированных книг",
+                fontSize = 20.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            )
         }
 
 
@@ -58,7 +65,7 @@ fun PlannedBooks(
             modifier = Modifier.padding(paddingValues),
         ) {
             itemsIndexed(state.value) { index, item ->
-                BookListItemScreen(itemData = item, onClick = {
+                BookListItem(itemData = item, onClick = {
                     onBookClick(index)
                 }, showRatingAndData = false)
             }

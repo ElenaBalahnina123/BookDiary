@@ -70,7 +70,7 @@ class EditElementViewModel @Inject constructor(
 
             mutableState.value = bookId?.let { booksRepository.getById(it) }?.let {
                 mutableState.value.copy(
-                    bookTitle =it.bookTitle,
+                    bookTitle = it.bookTitle,
                     author = it.author,
                     description = it.description.orEmpty(),
                     date = it.date,
@@ -87,6 +87,7 @@ class EditElementViewModel @Inject constructor(
             }
         }
     }
+
     fun bookTitleFlow() = mutableState.map { it.bookTitle }.distinctUntilChanged()
 
     fun authorFlow() = mutableState.map { it.author }.distinctUntilChanged()
@@ -135,7 +136,7 @@ class EditElementViewModel @Inject constructor(
             )
 
             navController.popBackStack()
-            
+
         }
 
     }
