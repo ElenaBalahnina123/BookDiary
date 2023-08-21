@@ -137,7 +137,6 @@ private fun navigationContent() {
                 val viewModel = hiltViewModel<BookListViewModel>()
                 BookListScreen(
                     onAddClick = { navController.navigate("editor?allowRate=true") },
-                    stateFlow = viewModel.booksFlow(),
                     onBookClick = { bookIndexInList ->
                         viewModel.onBookClick(
                             bookIndexInList,
@@ -145,7 +144,9 @@ private fun navigationContent() {
                         )
                     },
                     onToggleFavorite = viewModel::onToggleFavorite,
-                    onQueryChanged = viewModel::onQueryChanged
+                    onQueryChanged = viewModel::onQueryChanged,
+                    searchFlow = viewModel.searchFlow,
+                    booksListFlow = viewModel.booksFlow()
                 )
             }
             composable("favorite") {

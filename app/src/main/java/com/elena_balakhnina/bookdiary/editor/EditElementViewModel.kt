@@ -78,7 +78,8 @@ class EditElementViewModel @Inject constructor(
                     image = it.image,
                     plannedMode = plannedMode,
                     selectedGenreIndex = genres.indexOf(it.genre),
-                    genres = genres
+                    genres = genres,
+                    isFavorite = it.isFavorite
                 )
             } ?: kotlin.run {
                 mutableState.value.copy(

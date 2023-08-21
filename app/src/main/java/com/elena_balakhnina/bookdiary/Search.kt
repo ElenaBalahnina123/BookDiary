@@ -25,26 +25,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.sp
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 
-//@Preview
-//@Composable
-//fun SearchAppbarPreview() {
-//    var text by remember {
-//        mutableStateOf("")
-//    }
-//    BookDiaryTheme {
-//        Scaffold(
-//            topBar = {
-//                SearchAppbar(
-//                    searchText = text,
-//                    onSearchChanged = { text = it }
-//                )
-//            }
-//        ) {
-//            Box(modifier = Modifier.padding(it))
-//        }
-//    }
-//}
-
 @Composable
 fun SearchAppbar(
     searchText: TextFieldValue,

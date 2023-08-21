@@ -5,22 +5,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -52,12 +49,12 @@ class BookItemDataPreviewProvider : PreviewParameterProvider<BookListItemData> {
         }
 }
 
-@Preview(device = Devices.NEXUS_7)
+
 @Composable
 fun BookListItem(
     @PreviewParameter(BookItemDataPreviewProvider::class)
     itemData: BookListItemData,
-    onClick: () -> Unit = {},
+    onClick: () -> Unit,
     onFavoriteToggle: () -> Unit = {},
     showRatingAndData: Boolean = true
 ) {
@@ -79,7 +76,7 @@ fun BookListItem(
                         top.linkTo(parent.top, 8.dp)
                     }
                     .width(96.dp)
-                    .aspectRatio(0.75f),
+                    .aspectRatio(0.65f),
                 contentScale = ContentScale.Crop,
                 bitmap = itemData.image
             )
@@ -92,12 +89,12 @@ fun BookListItem(
                         top.linkTo(parent.top, 8.dp)
                     }
                     .width(96.dp)
-                    .aspectRatio(0.75f)
+                    .aspectRatio(0.65f)
             )
         }
         Text(
             text = itemData.bookTitle,
-            maxLines = 2,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.constrainAs(bookTitle) {
                 start.linkTo(image.end, 16.dp)
@@ -108,15 +105,13 @@ fun BookListItem(
         )
         Text(
             text = itemData.author,
-            color = Color.Blue,
+            color = Color(0xFF03A9F4),
             modifier = Modifier.constrainAs(author) {
                 start.linkTo(bookTitle.start)
-                top.linkTo(bookTitle.bottom, 4.dp)
+                top.linkTo(bookTitle.bottom, 2.dp)
             }
         )
 
-        val scope = rememberCoroutineScope()
-        val scaffoldState = rememberScaffoldState()
         if (showRatingAndData) {
             IconButton(
                 onClick = onFavoriteToggle,
@@ -149,12 +144,12 @@ fun BookListItem(
         Text(
             text = itemData.description,
             fontSize = 12.sp,
-            maxLines = 3,
+            maxLines = 4,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.constrainAs(description) {
                 start.linkTo(image.end, 16.dp)
                 end.linkTo(parent.end, 16.dp)
-                top.linkTo(author.bottom, 8.dp)
+                top.linkTo(author.bottom, 4.dp)
                 width = Dimension.fillToConstraints
             }
         )
@@ -191,6 +186,7 @@ fun BookListItem(
         }
 
     }
+    Divider(modifier = Modifier.padding(start = 16.dp, end = 16.dp))
 }
 
 

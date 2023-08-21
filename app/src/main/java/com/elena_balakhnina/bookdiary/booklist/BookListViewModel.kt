@@ -18,8 +18,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
@@ -35,20 +36,21 @@ class BookListViewModel @Inject constructor(
 
     private val mutableStateFlow = MutableStateFlow(TextFieldValue())
 
-    private val booksFlow = mutableStateFlow
+    val searchFlow get() = mutableStateFlow.asStateFlow()
+
+    private val booksStateFlow = mutableStateFlow
         .transformLatest { query ->
             booksRepository.getRatedBooksWithQuery(query.text).collect {
                 emit(it.map { it.toBookItemData() })
             }
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun booksFlow(): Flow<BookListScreenState> =
-        mutableStateFlow.combine(booksFlow) { query, books ->
-            BookListScreenState(
-                books = books.map { it.toBookListItemData() },
-                query = query,
-            )
-        }.flowOn(Dispatchers.IO)
+    fun booksFlow(): Flow<List<BookListItemData>> =
+        booksStateFlow
+            .map { it.map { it.toBookListItemData() } }
+            .flowOn(Dispatchers.IO)
 
     fun onQueryChanged(query: TextFieldValue) {
         mutableStateFlow.value = query
@@ -84,13 +86,13 @@ class BookListViewModel @Inject constructor(
     }
 
     fun onBookClick(bookIndex: Int, navController: NavHostController) {
-        val book = booksFlow.value[bookIndex]
+        val book = booksStateFlow.value[bookIndex]
         navController.navigate("books/${book.bookId}")
     }
 
     fun onToggleFavorite(bookIndex: Int) {
         Log.d("BookListViewModel", "onToggleFavorite $bookIndex")
-        val book = booksFlow.value[bookIndex]
+        val book = booksStateFlow.value[bookIndex]
         viewModelScope.launch {
             booksRepository.setFavorite(book.bookId, !book.isFavorite)
             if (!book.isFavorite) {
@@ -100,6 +102,5 @@ class BookListViewModel @Inject constructor(
             }
         }
     }
-
 }
 

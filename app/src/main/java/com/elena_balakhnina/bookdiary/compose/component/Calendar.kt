@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
+import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 import java.util.GregorianCalendar
 
 @Composable
@@ -24,13 +25,13 @@ fun Calendar(
     date: Long,
     onDateChanged: (Long) -> Unit
 ) {
+BookDiaryTheme {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     )
     {
-
         Row(verticalAlignment = Alignment.CenterVertically) {
             val context = LocalContext.current
             TextButton(
@@ -58,4 +59,5 @@ fun Calendar(
             Icon(imageVector = Icons.Default.DateRange, contentDescription = "calendar")
         }
     }
+}
 }

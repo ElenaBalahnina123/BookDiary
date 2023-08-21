@@ -24,6 +24,8 @@ import com.elena_balakhnina.bookdiary.booklistitem.BookListItem
 import com.elena_balakhnina.bookdiary.booklistitem.BookListItemData
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 
 data class BookListScreenState(
@@ -34,7 +36,8 @@ data class BookListScreenState(
 @Preview
 @Composable
 fun BookListScreen(
-    stateFlow: Flow<BookListScreenState> = emptyFlow(),
+    searchFlow: StateFlow<TextFieldValue> = MutableStateFlow(TextFieldValue()),
+    booksListFlow: Flow<List<BookListItemData>> = emptyFlow(),
     onAddClick: () -> Unit = {},
     onBookClick: (Int) -> Unit = {},
     onToggleFavorite: (Int) -> Unit = {},
@@ -42,17 +45,11 @@ fun BookListScreen(
 ) {
 
     BookDiaryTheme {
-        val state by stateFlow.collectAsState(
-            initial = BookListScreenState(
-                emptyList(),
-                TextFieldValue()
-            )
-        )
-
         Scaffold(
             topBar = {
+                val query by searchFlow.collectAsState()
                 SearchAppbar(
-                    searchText = state.query,
+                    searchText = query,
                     onSearchChanged = onQueryChanged
                 )
             },
@@ -65,10 +62,12 @@ fun BookListScreen(
             },
         ) { paddingValues ->
 
+            val books by booksListFlow.collectAsState(emptyList())
+
             LazyColumn(
                 modifier = Modifier.padding(paddingValues),
             ) {
-                if (state.books.isEmpty()) {
+                if (books.isEmpty()) {
                     item {
                         Text(
                             text = "Нет прочитанных книг",
@@ -81,7 +80,7 @@ fun BookListScreen(
                     }
                 } else {
                     itemsIndexed(
-                        state.books,
+                        books,
                     ) { index, item ->
                         BookListItem(
                             itemData = item,

@@ -46,7 +46,7 @@ interface BooksRepository {
     suspend fun save(book: BookEntity)
     suspend fun getById(bookId: Long): BookEntity?
 
-    suspend fun getAll(): List<BookEntity>
+//    suspend fun getAll(): List<BookEntity>
 
     suspend fun delete(bookId: Long)
 
@@ -54,7 +54,7 @@ interface BooksRepository {
 
     fun favoriteBooksFlow(): Flow<List<BookEntity>>
 
-    fun ratedBooksFlow(): Flow<List<BookEntity>>
+//    fun ratedBooksFlow(): Flow<List<BookEntity>>
 
     fun bookEntityFlow(bookId: Long): Flow<BookEntity>
 
@@ -90,10 +90,10 @@ class BooksRepositoryImpl @Inject constructor(
             .mapToBookEntity()
     }
 
-    override fun ratedBooksFlow(): Flow<List<BookEntity>> {
-        return booksDao.getRatedBooks()
-            .mapToBookEntity()
-    }
+//    override fun ratedBooksFlow(): Flow<List<BookEntity>> {
+//        return booksDao.getRatedBooks()
+//            .mapToBookEntity()
+//    }
 
     override suspend fun setFavorite(bookId: Long, isFavorite: Boolean) {
         booksDao.getById(bookId)?.copy(
@@ -129,9 +129,9 @@ class BooksRepositoryImpl @Inject constructor(
         return booksDao.getById(bookId)?.toBookEntity(genresTask.await())
     }
 
-    override suspend fun getAll(): List<BookEntity> {
-        return mapToBookEntity(booksDao.getAllBooks())
-    }
+//    override suspend fun getAll(): List<BookEntity> {
+//        return mapToBookEntity(booksDao.getAllBooks())
+//    }
 
     override suspend fun delete(bookId: Long) {
         booksDao.delete(bookId)

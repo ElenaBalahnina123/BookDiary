@@ -34,7 +34,7 @@ interface BooksDao {
     @Query("SELECT * FROM books")
     fun getAllBooksFlow(): Flow<List<BookDbEntity>>
 
-    @Query("SELECT * FROM books WHERE rating > 0 AND (bookTitle LIKE '%' || :theQuery || '%' OR author LIKE '%' || :theQuery || '%')")
+    @Query("SELECT * FROM books WHERE rating > 0 AND (bookTitle LIKE '%' || :theQuery || '%' OR author LIKE '%' || :theQuery || '%') ORDER BY id DESC")
     fun getBooksByQuery(theQuery: String): Flow<List<BookDbEntity>>
 
     @Query("SELECT * FROM books WHERE id = :bookId LIMIT 1")
@@ -58,18 +58,18 @@ interface BooksDao {
     @Query("SELECT count(id) FROM books")
     suspend fun countAll(): Long
 
-    @Query("SELECT * FROM books WHERE rating <= 0")
+    @Query("SELECT * FROM books WHERE rating <= 0 ORDER BY id DESC")
     fun getPlannedBooks(): Flow<List<BookDbEntity>>
 
-    @Query("SELECT * FROM books WHERE rating > 0")
+    @Query("SELECT * FROM books WHERE rating > 0 ORDER BY id DESC")
     fun getRatedBooks(): Flow<List<BookDbEntity>>
 
-    @Query("SELECT * FROM books WHERE isFavorite")
+    @Query("SELECT * FROM books WHERE isFavorite ORDER BY id DESC")
     fun getFavoriteBooks(): Flow<List<BookDbEntity>>
 
 }
 
-@Database(entities = [BookDbEntity::class, GenreDBEntity::class], version = 10)
+@Database(entities = [BookDbEntity::class, GenreDBEntity::class], version = 13)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bookDao(): BooksDao
 

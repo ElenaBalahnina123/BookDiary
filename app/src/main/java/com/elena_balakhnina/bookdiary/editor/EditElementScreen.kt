@@ -174,6 +174,13 @@ fun EditElementScreen(
                         }
                     }
                 }
+                DropdownComponent(
+                    options = data.genres,
+                    hint = "Жанр",
+                    selectedOption = data.selectedGenreIndex,
+                    onSelectedOptionChange = onGenreChange,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 if (data.plannedMode) {
                     val ratings: List<String> = remember {
                         (1..10).map {
@@ -186,14 +193,8 @@ fun EditElementScreen(
                         selectedOption = data.rating - 1,
                         onSelectedOptionChange = { onRatingChanged(it + 1) }
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+
                 }
-                DropdownComponent(
-                    options = data.genres,
-                    hint = "Жанр",
-                    selectedOption = data.selectedGenreIndex,
-                    onSelectedOptionChange = onGenreChange
-                )
 
                 if (data.plannedMode) {
                     Calendar(
@@ -214,8 +215,7 @@ fun EditElementScreen(
                             .fillMaxWidth(),
                         colors = TextFieldDefaults.textFieldColors(
                             backgroundColor = Color.Transparent
-                        ),
-                        maxLines = 5
+                        )
                     )
                 }
                 Button(

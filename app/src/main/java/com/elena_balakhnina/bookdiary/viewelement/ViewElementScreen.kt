@@ -110,16 +110,16 @@ fun ViewElementScreen(
                 Text(
                     text = viewElementData.bookTitle,
                     fontSize = 22.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp, top = 8.dp)
                 )
 
                 Text(
                     text = viewElementData.author,
-                    color = Color.Blue,
+                    color = Color(0xFF03A9F4),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                Row() {
+                Row(modifier = Modifier.fillMaxSize()) {
 
                     if (viewElementData.image != null) {
                         Image(
@@ -142,7 +142,13 @@ fun ViewElementScreen(
 
                     Column() {
                         if (viewElementData.allowRate) {
-                            Row(modifier = Modifier.padding(start = 48.dp)) {
+                            Row(
+                                modifier = Modifier.padding(start = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Рейтинг: ",
+                                )
                                 Image(
                                     painter = painterResource(id = R.drawable.star_rate_white_24dp),
                                     contentDescription = null,
@@ -156,28 +162,32 @@ fun ViewElementScreen(
                                 )
                             }
                         }
+
+
                         Text(
                             text = "Жанр: ${viewElementData.genre}",
-                            modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+                            modifier = Modifier.padding(start = 16.dp, top = 8.dp)
                         )
 
-                        if (viewElementData.allowRate) {
 
+
+                        if (viewElementData.allowRate) {
                             Text(
                                 text = String.format(
                                     "%1\$td.%1\$tm.%1\$ty", viewElementData.date
                                 ), modifier = Modifier.padding(start = 16.dp, top = 16.dp)
                             )
+
                         }
+
                     }
 
                 }
 
-
                 Text(
                     text = viewElementData.description,
                     modifier = Modifier
-                        .padding(top = 16.dp, bottom = 16.dp)
+                        .padding(top = 8.dp, bottom = 16.dp)
 
                 )
 

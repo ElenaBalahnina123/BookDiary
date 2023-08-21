@@ -15,7 +15,8 @@ import androidx.compose.runtime.Composable
 private val LightColorPalette = lightColors(
     primary = Turquoise,
     primaryVariant = TurquoiseDark,
-    secondary = Yellow,
+    secondary = Yellow
+
 
     /* Other default colors to override
     background = Color.White,
