@@ -90,9 +90,6 @@ class DatabaseModule {
     @Singleton
     fun provideRoomDb(@ApplicationContext context: Context): AppDatabase {
         return AppInitializer.getInstance(context).initializeComponent(AppDbInitializer::class.java)
-        /*return Room.databaseBuilder(context, AppDatabase::class.java, "books_diary")
-            .fallbackToDestructiveMigration()
-            .build()*/
     }
 
     @Provides

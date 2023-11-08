@@ -53,8 +53,8 @@ class GenresRepositoryImpl @Inject constructor(
     }
 
     override suspend fun fetchRemoteGenres(): Unit = withContext(Dispatchers.IO) {
-//        val lastUpdated = appPreferences.lastUpdateDate()
-//        if(System.currentTimeMillis() - lastUpdated < MIN_UPDATE_INTERVAL) return@withContext
+        val lastUpdated = appPreferences.lastUpdateDate()
+        if(System.currentTimeMillis() - lastUpdated < MIN_UPDATE_INTERVAL) return@withContext
         Log.d("GenresRepository","fetching remote genres...")
         kotlin.runCatching {
             loadGenresFromFb().associate { it.fbId to it.genre }
@@ -81,6 +81,8 @@ class GenresRepositoryImpl @Inject constructor(
             if(idsForDelete.isNotEmpty()) {
                 genresDao.deleteById(idsForDelete)
             }
+        }.onSuccess {
+            appPreferences.updateLastUpdateDate()
         }.onFailure {
             Log.e("GenresRepository","unable to fetch genres")
         }
