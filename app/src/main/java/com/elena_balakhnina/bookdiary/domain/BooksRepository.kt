@@ -1,6 +1,5 @@
 package com.elena_balakhnina.bookdiary.domain
 
-import android.util.Log
 import com.elena_balakhnina.bookdiary.database.BookDbEntity
 import com.elena_balakhnina.bookdiary.database.BooksDao
 import com.elena_balakhnina.bookdiary.database.GenreDBEntity
@@ -46,15 +45,11 @@ interface BooksRepository {
     suspend fun save(book: BookEntity)
     suspend fun getById(bookId: Long): BookEntity?
 
-//    suspend fun getAll(): List<BookEntity>
-
     suspend fun delete(bookId: Long)
 
     fun plannedBooksFlow(): Flow<List<BookEntity>>
 
     fun favoriteBooksFlow(): Flow<List<BookEntity>>
-
-//    fun ratedBooksFlow(): Flow<List<BookEntity>>
 
     fun bookEntityFlow(bookId: Long): Flow<BookEntity>
 
@@ -90,17 +85,11 @@ class BooksRepositoryImpl @Inject constructor(
             .mapToBookEntity()
     }
 
-//    override fun ratedBooksFlow(): Flow<List<BookEntity>> {
-//        return booksDao.getRatedBooks()
-//            .mapToBookEntity()
-//    }
-
     override suspend fun setFavorite(bookId: Long, isFavorite: Boolean) {
         booksDao.getById(bookId)?.copy(
             isFavorite = isFavorite
         )?.let {
             booksDao.updateBook(it)
-            Log.d("OLOLO", "book with $bookId set favorite to $isFavorite")
         }
     }
 
@@ -128,10 +117,6 @@ class BooksRepositoryImpl @Inject constructor(
     override suspend fun getById(bookId: Long): BookEntity? {
         return booksDao.getById(bookId)?.toBookEntity(genresTask.await())
     }
-
-//    override suspend fun getAll(): List<BookEntity> {
-//        return mapToBookEntity(booksDao.getAllBooks())
-//    }
 
     override suspend fun delete(bookId: Long) {
         booksDao.delete(bookId)

@@ -2,6 +2,7 @@ package com.elena_balakhnina.bookdiary.database
 
 import android.content.Context
 import androidx.room.*
+import androidx.startup.AppInitializer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,6 +14,9 @@ import javax.inject.Singleton
 @Dao
 interface GenreDao {
     @Query("SELECT COUNT(fb_id) FROM genres")
+    fun countGenresSync(): Long
+
+    @Query("SELECT COUNT(fb_id) FROM genres")
     suspend fun countGenres(): Long
 
     @Query("SELECT * FROM genres")
@@ -20,6 +24,9 @@ interface GenreDao {
 
     @Query("DELETE FROM genres")
     suspend fun deleteAllGenres()
+
+    @Insert
+    fun insertGenresSync(list: List<GenreDBEntity>)
 
     @Insert
     suspend fun insertGenres(list: List<GenreDBEntity>)
@@ -80,9 +87,10 @@ class DatabaseModule {
     @Provides
     @Singleton
     fun provideRoomDb(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(context, AppDatabase::class.java, "books_diary")
+        return AppInitializer.getInstance(context).initializeComponent(AppDbInitializer::class.java)
+        /*return Room.databaseBuilder(context, AppDatabase::class.java, "books_diary")
             .fallbackToDestructiveMigration()
-            .build()
+            .build()*/
     }
 
     @Provides
