@@ -52,9 +52,6 @@ interface BooksDao {
     @Query("DELETE FROM books WHERE id = :bookId")
     suspend fun delete(bookId: Long)
 
-    @Query("SELECT * FROM books")
-    suspend fun getAllBooks(): List<BookDbEntity>
-
     @Query("SELECT count(id) FROM books")
     suspend fun countAll(): Long
 
