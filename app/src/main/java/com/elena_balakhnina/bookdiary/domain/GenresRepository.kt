@@ -11,8 +11,8 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.LinkedList
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -29,14 +29,16 @@ abstract class GenresRepoModule {
 
 interface GenresRepository {
 
-    suspend fun awaitInit()
+    suspend fun fetchRemoteGenres()
+
+//    suspend fun awaitInit()
 
     suspend fun getAllGenres(): List<Genre>
 
     suspend fun getById(generId: String): Genre?
 }
 
-
+private typealias DbGenre = GenreDBEntity
 
 @Singleton
 class GenresRepositoryImpl @Inject constructor(
@@ -50,50 +52,67 @@ class GenresRepositoryImpl @Inject constructor(
         private const val MIN_UPDATE_INTERVAL = 86400000
     }
 
-    private val initJob = GlobalScope.launch(Dispatchers.IO) {
-        val savedCount = genresDao.countGenres()
-        Log.d("GENRES", "count: $savedCount")
+    override suspend fun fetchRemoteGenres(): Unit = withContext(Dispatchers.IO) {
+//        val lastUpdated = appPreferences.lastUpdateDate()
+//        if(System.currentTimeMillis() - lastUpdated < MIN_UPDATE_INTERVAL) return@withContext
+        Log.d("GenresRepository","fetching remote genres...")
+        kotlin.runCatching {
+            loadGenresFromFb().associate { it.fbId to it.genre }
+        }.mapCatching { fbGenresMap ->
+            val dbGenresMap = genresDao.getAllGenres().associate { it.fbId to it.genre }
 
-        val lastUpdated = appPreferences.lastUpdateDate()
+            val addedGenres = LinkedList<DbGenre>()
 
-        if (savedCount == 0L || (System.currentTimeMillis() - lastUpdated > MIN_UPDATE_INTERVAL)) {
-            kotlin.runCatching {
-                suspendCoroutine { cont ->
-                    Firebase.firestore.collection("genres")
-                        .orderBy("genre")
-                        .get()
-                        .addOnSuccessListener { querySnapshot ->
-                            val genres = querySnapshot.map {
-                                GenreDBEntity(
-                                    fbId = it.id,
-                                    genre = it.get("genre").toString()
-                                )
-                            }
-                            cont.resume(genres)
-                        }
-                        .addOnFailureListener {
-                            cont.resumeWithException(it)
-                        }
+            fbGenresMap.forEach { (fbId, genre) ->
+                if(!dbGenresMap.containsKey(fbId)) {
+                    addedGenres.add(DbGenre(fbId, genre))
                 }
-            }.onSuccess { genres ->
-                genresDao.deleteAllGenres()
-                genresDao.insertGenres(genres)
-                appPreferences.updateLastUpdateDate()
+            }
+
+            val idsForDelete = dbGenresMap.keys.filter {
+                it !in fbGenresMap.keys
+            }
+
+            Log.d("GenresRepository", "fetched ${fbGenresMap.size} genres, new ${addedGenres.size}, removed ${idsForDelete.size}")
+
+            if(addedGenres.isNotEmpty()) {
+                genresDao.insertGenres(addedGenres)
+            }
+            if(idsForDelete.isNotEmpty()) {
+                genresDao.deleteById(idsForDelete)
+            }
+        }.onFailure {
+            Log.e("GenresRepository","unable to fetch genres")
+        }
+    }
+
+    private suspend fun loadGenresFromFb(): List<DbGenre> {
+        return withContext(Dispatchers.IO) {
+            suspendCoroutine { cont ->
+                Firebase.firestore.collection("genres")
+                    .orderBy("genre")
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        val genres = querySnapshot.map {
+                            GenreDBEntity(
+                                fbId = it.id,
+                                genre = it["genre"].toString()
+                            )
+                        }
+                        cont.resume(genres)
+                    }
+                    .addOnFailureListener {
+                        cont.resumeWithException(it)
+                    }
             }
         }
     }
 
-    override suspend fun awaitInit() {
-        initJob.join()
-    }
-
     override suspend fun getAllGenres(): List<Genre> {
-        initJob.join()
         return genresDao.getAllGenres()
     }
 
     override suspend fun getById(generId: String): Genre? {
-        initJob.join()
         return genresDao.getByIdGenre(generId)
     }
 }

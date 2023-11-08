@@ -19,11 +19,14 @@ interface GenreDao {
     @Query("SELECT COUNT(fb_id) FROM genres")
     suspend fun countGenres(): Long
 
-    @Query("SELECT * FROM genres")
+    @Query("SELECT * FROM genres ORDER BY genre ASC")
     suspend fun getAllGenres(): List<GenreDBEntity>
 
     @Query("DELETE FROM genres")
     suspend fun deleteAllGenres()
+
+    @Query("DELETE FROM genres WHERE fb_id in (:ids)")
+    suspend fun deleteById(ids: List<String>)
 
     @Insert
     fun insertGenresSync(list: List<GenreDBEntity>)
@@ -34,7 +37,6 @@ interface GenreDao {
     @Query("SELECT * FROM genres WHERE fb_id = :id LIMIT 1")
     suspend fun getByIdGenre(id: String): GenreDBEntity?
 }
-
 
 @Dao
 interface BooksDao {
