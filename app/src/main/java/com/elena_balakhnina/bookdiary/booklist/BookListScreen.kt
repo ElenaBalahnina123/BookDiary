@@ -28,10 +28,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 
-data class BookListScreenState(
-    val books: List<BookListItemData>,
-    val query: TextFieldValue,
-)
 
 @Preview
 @Composable

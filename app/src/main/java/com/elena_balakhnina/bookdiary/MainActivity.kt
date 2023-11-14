@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
@@ -14,12 +15,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navOptions
+import com.elena_balakhnina.bookdiary.authentication.GoogleAuthViewModel
+import com.elena_balakhnina.bookdiary.authentication.HomeScreen
+import com.elena_balakhnina.bookdiary.authentication.LoginScreen
+import com.elena_balakhnina.bookdiary.authentication.SignupScreen
 import com.elena_balakhnina.bookdiary.booklist.BookListScreen
 import com.elena_balakhnina.bookdiary.booklist.BookListViewModel
 import com.elena_balakhnina.bookdiary.compose.component.bottommenu.BottomMenuCompose
@@ -38,6 +44,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    private val authViewModel by viewModels<GoogleAuthViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -46,7 +53,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    navigationContent()
+                    AppNavHost(viewModel = authViewModel)
+//                    navigationContent()
                 }
             }
         }
@@ -60,6 +68,29 @@ private val MainRoutes = setOf(
 )
 
 @Composable
+fun AppNavHost(
+    viewModel: GoogleAuthViewModel,
+    modifier: Modifier = Modifier,
+    navController: NavHostController = rememberNavController(),
+    startDestination: String = "ROUTE_LOGIN"
+) {
+    NavHost(
+        modifier = modifier,
+        navController = navController,
+        startDestination = startDestination
+    ) {
+        composable("ROUTE_LOGIN") {
+            LoginScreen(navController, viewModel.signInFlow, viewModel::loginUser)
+        }
+        composable("ROUTE_SIGNUP") {
+            SignupScreen(viewModel, navController)
+        }
+        composable("ROUTE_HOME") {
+            HomeScreen(viewModel, navController)
+        }
+    }
+}
+@Composable
 private fun navigationContent() {
     val navController = rememberNavController()
 
@@ -72,7 +103,7 @@ private fun navigationContent() {
                 BottomMenuCompose(navController = navController)
             }
         },
-    ) { it ->
+    ) {
         NavHost(
             modifier = Modifier.padding(it),
             navController = navController,

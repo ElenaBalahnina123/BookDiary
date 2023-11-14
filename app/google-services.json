@@ -14,7 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "297755070705-1a1l8p76hj208egqpfffiitbcc2utf09.apps.googleusercontent.com",
+          "client_id": "297755070705-udp4apfa75napqec2f341mq8qj3vrurn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elena_balakhnina.bookdiary",
+            "certificate_hash": "5a7f5262e431616ead072fc114d58a065fbdac6f"
+          }
+        },
+        {
+          "client_id": "297755070705-nr0it9s8dgld96fouat41hi95mqr7uoq.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
