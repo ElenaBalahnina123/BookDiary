@@ -5,8 +5,6 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 
@@ -29,9 +27,8 @@ fun BookEditor(navController: NavController) {
             }
         }
 
-    val screenData by viewModel.uiFlow.collectAsState()
-
     EditElementScreen(
+        flow = viewModel.uiFlow,
         onSaveClick = { viewModel.saveClick(navController) },
         onTitleChange = viewModel::onTitleChange,
         onAuthorChange = viewModel::onAuthorChange,
@@ -42,9 +39,5 @@ fun BookEditor(navController: NavController) {
         onRatingChanged = viewModel::onRatingSelected,
         onDateChanged = viewModel::onDateChanged,
         onPopBackStack = { navController.popBackStack() },
-        data = screenData,
-        bookTitleFlow = viewModel.bookTitleFlow(),
-        authorFlow = viewModel.authorFlow(),
-        descriptionFlow = viewModel.descriptionFlow()
     )
 }

@@ -19,7 +19,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -31,40 +30,43 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.elena_balakhnina.bookdiary.FlowTextField
 import com.elena_balakhnina.bookdiary.R
+import com.elena_balakhnina.bookdiary.collectMappedState
 import com.elena_balakhnina.bookdiary.compose.component.Calendar
-import com.elena_balakhnina.bookdiary.compose.component.DropdownComponent
+import com.elena_balakhnina.bookdiary.compose.component.DropDownComponent
 import com.elena_balakhnina.bookdiary.ui.theme.BookDiaryTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 
 
 @Composable
 fun EditElementScreen(
-    data: EditElementData,
-    onSaveClick: () -> Unit = {},
+    flow: Flow<EditElementData> = emptyFlow(),
 
-    onTitleChange: (String) -> Unit = {},
-    onAuthorChange: (String) -> Unit = {},
-    onDescriptionChange: (String) -> Unit = {},
+    onTitleChange: (TextFieldValue) -> Unit = {},
+    onAuthorChange: (TextFieldValue) -> Unit = {},
+    onDescriptionChange: (TextFieldValue) -> Unit = {},
 
     onClickGallery: () -> Unit = {},
+    onSaveClick: () -> Unit = {},
     onClickCamera: () -> Unit = {},
     onGenreChange: (Int) -> Unit = {},
     onRatingChanged: (Int) -> Unit = {},
     onDateChanged: (Long) -> Unit = {},
     onPopBackStack: () -> Unit = {},
-
-    bookTitleFlow: Flow<String> = emptyFlow(),
-    authorFlow: Flow<String> = emptyFlow(),
-    descriptionFlow: Flow<String> = emptyFlow(),
-
-    ) {
+) {
     BookDiaryTheme {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -85,7 +87,6 @@ fun EditElementScreen(
                 )
             }
         ) { scaffoldPaddings ->
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -93,37 +94,36 @@ fun EditElementScreen(
                     .padding(8.dp)
                     .verticalScroll(rememberScrollState()),
             ) {
-
-                Box {
-                    val title by bookTitleFlow.collectAsState(initial = "")
-
-                    TextField(
-                        value = title,
-                        onValueChange = onTitleChange,
-                        label = {
-                            Text(text = "Название книги")
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = TextFieldDefaults.textFieldColors(
-                            backgroundColor = Color.Transparent
-                        )
+                FlowTextField(
+                    flow = remember {
+                        flow.map { it.bookTitle }
+                            .distinctUntilChanged()
+                            .flowOn(Dispatchers.IO)
+                    },
+                    onValueChange = onTitleChange,
+                    label = {
+                        Text(text = "Название книги")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.Transparent
                     )
-                }
-                Box {
-                    val author by authorFlow.collectAsState(initial = "")
-
-                    TextField(
-                        value = author,
-                        onValueChange = onAuthorChange,
-                        label = {
-                            Text(text = "Автор")
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = TextFieldDefaults.textFieldColors(
-                            backgroundColor = Color.Transparent
-                        )
+                )
+                FlowTextField(
+                    flow = remember {
+                        flow.map { it.author }
+                            .distinctUntilChanged()
+                            .flowOn(Dispatchers.IO)
+                    },
+                    onValueChange = onAuthorChange,
+                    label = {
+                        Text(text = "Автор")
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.Transparent
                     )
-                }
+                )
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -134,7 +134,11 @@ fun EditElementScreen(
                             .aspectRatio(0.65f)
                             .padding(top = 8.dp)
                     ) {
-                        data.image?.let {
+                        val image: ImageBitmap? by flow.collectMappedState(
+                            initialValue = null
+                        ) { it.image }
+
+                        image?.let {
                             Image(
                                 bitmap = it,
                                 contentDescription = null,
@@ -174,50 +178,61 @@ fun EditElementScreen(
                         }
                     }
                 }
-                DropdownComponent(
-                    options = data.genres,
-                    hint = "Жанр",
-                    selectedOption = data.selectedGenreIndex,
+
+                DropDownComponent(
                     onSelectedOptionChange = onGenreChange,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                if (data.plannedMode) {
-                    val ratings: List<String> = remember {
-                        (1..10).map {
-                            it.toString()
-                        }
+                    flow = remember {
+                        flow.map { it.genresDropDownState }
+                            .distinctUntilChanged()
+                            .flowOn(Dispatchers.IO)
                     }
-                    DropdownComponent(
-                        options = ratings,
-                        hint = "Рейтинг",
-                        selectedOption = data.rating - 1,
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val isPlannedMode by remember {
+                    flow.map { it.plannedMode }
+                        .distinctUntilChanged()
+                        .flowOn(Dispatchers.IO)
+                }.collectAsState(initial = false)
+
+                if (isPlannedMode) {
+                    DropDownComponent(
+                        flow = remember {
+                            flow.map { it.ratingState }
+                                .distinctUntilChanged()
+                                .flowOn(Dispatchers.IO)
+                        },
                         onSelectedOptionChange = { onRatingChanged(it + 1) }
                     )
 
-                }
-
-                if (data.plannedMode) {
                     Calendar(
-                        date = data.date,
+                        dateFlow = remember {
+                            flow.map { it.date }
+                                .distinctUntilChanged()
+                                .flowOn(Dispatchers.IO)
+                        },
                         onDateChanged = onDateChanged,
                     )
                 }
-                Box() {
-                    val description by descriptionFlow.collectAsState(initial = "")
 
-                    TextField(
-                        value = description,
-                        onValueChange = onDescriptionChange,
-                        label = {
-                            Text(text = "Описание")
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        colors = TextFieldDefaults.textFieldColors(
-                            backgroundColor = Color.Transparent
-                        )
+                FlowTextField(
+                    flow = remember {
+                        flow.map { it.description }
+                            .distinctUntilChanged()
+                            .flowOn(Dispatchers.IO)
+                    },
+                    onValueChange = onDescriptionChange,
+                    label = {
+                        Text(text = "Описание")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.Transparent
                     )
-                }
+                )
+
                 Button(
                     onClick = onSaveClick, modifier = Modifier
                         .padding(16.dp)

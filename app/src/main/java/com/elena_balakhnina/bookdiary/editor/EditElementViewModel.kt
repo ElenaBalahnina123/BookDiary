@@ -10,10 +10,12 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.launch
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.elena_balakhnina.bookdiary.compose.component.DropDownState
 import com.elena_balakhnina.bookdiary.domain.BookEntity
 import com.elena_balakhnina.bookdiary.domain.BooksRepository
 import com.elena_balakhnina.bookdiary.domain.GenresRepository
@@ -22,11 +24,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -70,9 +69,9 @@ class EditElementViewModel @Inject constructor(
 
             mutableState.value = bookId?.let { booksRepository.getById(it) }?.let {
                 mutableState.value.copy(
-                    bookTitle = it.bookTitle,
-                    author = it.author,
-                    description = it.description.orEmpty(),
+                    bookTitle = TextFieldValue(it.bookTitle),
+                    author = TextFieldValue(it.author),
+                    description = TextFieldValue(it.description.orEmpty()),
                     date = it.date,
                     rating = it.rating,
                     image = it.image,
@@ -89,20 +88,14 @@ class EditElementViewModel @Inject constructor(
         }
     }
 
-    fun bookTitleFlow() = mutableState.map { it.bookTitle }.distinctUntilChanged()
-
-    fun authorFlow() = mutableState.map { it.author }.distinctUntilChanged()
-
-    fun descriptionFlow() = mutableState.map { it.description }.distinctUntilChanged()
-
     fun saveClick(navController: NavController) {
         viewModelScope.launch {
             val state = mutableState.value
-            if (state.bookTitle.isEmpty()) {
+            if (state.bookTitle.text.isEmpty()) {
                 Toast.makeText(context, "Введите название книги", Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            if (state.author.isEmpty()) {
+            if (state.author.text.isEmpty()) {
                 Toast.makeText(context, "Введите автора", Toast.LENGTH_SHORT).show()
                 return@launch
             }
@@ -124,9 +117,9 @@ class EditElementViewModel @Inject constructor(
             booksRepository.save(
                 BookEntity(
                     id = bookId,
-                    bookTitle = state.bookTitle,
-                    author = state.author,
-                    description = state.description,
+                    bookTitle = state.bookTitle.text,
+                    author = state.author.text,
+                    description = state.description.text,
                     date = state.date,
                     rating = state.rating,
                     image = state.image,
@@ -137,7 +130,6 @@ class EditElementViewModel @Inject constructor(
             )
 
             navController.popBackStack()
-
         }
 
     }
@@ -145,48 +137,42 @@ class EditElementViewModel @Inject constructor(
     val uiFlow = mutableState.map { viewModelState ->
         EditElementData(
             bookTitle = viewModelState.bookTitle,
-            selectedGenreIndex = viewModelState.selectedGenreIndex,
+            genresDropDownState = DropDownState(
+                options = viewModelState.genres.map { genreDBEntity -> genreDBEntity.genre },
+                hint = "Жанр",
+                selectedOption = viewModelState.selectedGenreIndex,
+            ),
             plannedMode = viewModelState.plannedMode,
             date = viewModelState.date,
-            rating = viewModelState.rating,
+            ratingState = DropDownState(
+                options = (1..10).map {
+                    it.toString()
+                },
+                hint = "Рейтинг",
+                selectedOption = viewModelState.rating - 1,
+            ),
             image = imageCache.getBitmapFromCache(viewModelState.image),
             description = viewModelState.description,
             author = viewModelState.author,
-            genres = viewModelState.genres.map { genreDBEntity -> genreDBEntity.genre },
             isFavorite = viewModelState.isFavorite
         )
-    }.distinctUntilChanged().onEach {
-        Log.d(TAG, "update uiFlow to $it")
-    }.stateIn(
-        viewModelScope, SharingStarted.Eagerly, EditElementData(
-            bookTitle = "",
-            author = "",
-            image = null,
-            isFavorite = false,
-            plannedMode = false,
-            genres = emptyList(),
-            description = "",
-            rating = 0,
-            date = 0L,
-            selectedGenreIndex = -1
-        )
-    )
+    }.distinctUntilChanged()
 
-    fun onTitleChange(newTitle: String) {
+    fun onTitleChange(newTitle: TextFieldValue) {
         Log.d(TAG, "onTitleChange: $newTitle")
         mutableState.value = mutableState.value.copy(
             bookTitle = newTitle
         )
     }
 
-    fun onAuthorChange(newAuthor: String) {
+    fun onAuthorChange(newAuthor: TextFieldValue) {
         Log.d(TAG, "onAuthorChange: $newAuthor")
         mutableState.value = mutableState.value.copy(
             author = newAuthor
         )
     }
 
-    fun onDescriptionChange(newDescription: String) {
+    fun onDescriptionChange(newDescription: TextFieldValue) {
         Log.d(TAG, "onDescriptionChange: $newDescription")
         mutableState.value = mutableState.value.copy(
             description = newDescription
