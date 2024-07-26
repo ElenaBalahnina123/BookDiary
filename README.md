@@ -7,7 +7,6 @@
 + Navigation
 + Room
 + Firebase
-+ Retrofit
 + MVVM
 + Hilt
 + Coroutines
